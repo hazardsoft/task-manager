@@ -7,6 +7,7 @@
         "build": "rollup --config",
         "watch": "rollup --config --watch",
         "start": "nodemon dist/index.js",
+        "debug": "nodemon inspect dist/index.js",
         "test": "exit  0"
     },
     "author": "",
