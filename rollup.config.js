@@ -11,6 +11,6 @@ export default [
             },
         ],
         plugins: [typescript()],
-        external: [], // required to omit warning about non-bundled dependency
-    }
+        external: ["mongodb"], // required to omit warning about non-bundled dependency
+    },
 ];
