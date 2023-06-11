@@ -1,9 +1,9 @@
-import { Db, MongoClient, MongoError } from "mongodb";
+import { Db, MongoClient, MongoError, UpdateResult } from "mongodb";
 import { config } from "./config.js";
 import { addUser } from "./users.js";
 import { addTasks } from "./tasks.js";
-import { Task } from "./types.js";
-import { findTask, findTasks } from "./crud.js";
+import { Task, User } from "./types.js";
+import { findTask, findTasks, updateTasks, updateUser } from "./crud.js";
 
 const client: MongoClient = new MongoClient(config.connectionUrl);
 try {
@@ -22,6 +22,16 @@ try {
 
     const tasks: Task[] = await findTasks(db);
     console.log(`findTasks result: ${JSON.stringify(tasks)}`);
+
+    const updatedUser: UpdateResult<User> = await updateUser(db);
+    console.log(
+        `user update result: ack ${updatedUser.acknowledged}, matched ${updatedUser.matchedCount}, modified ${updatedUser.modifiedCount}`
+    );
+
+    const updatedTasks: UpdateResult<Task> = await updateTasks(db);
+    console.log(
+        `tasks update result: ack ${updatedTasks.acknowledged}, matched ${updatedTasks.matchedCount}, modified ${updatedTasks.modifiedCount}`
+    );
 } catch (e) {
     if (e instanceof MongoError) {
         console.error(`MongoDB error occurred: ${JSON.stringify(e)}`);

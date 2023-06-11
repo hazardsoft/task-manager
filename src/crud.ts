@@ -1,5 +1,5 @@
-import { Db } from "mongodb";
-import { Task } from "./types.js";
+import { Db, UpdateResult } from "mongodb";
+import { Task, User } from "./types.js";
 import { config } from "./config.js";
 
 async function findTask(db: Db): Promise<Task | null> {
@@ -19,4 +19,25 @@ async function findTasks(db: Db): Promise<Task[]> {
     return tasks;
 }
 
-export { findTask, findTasks };
+async function updateUser(db: Db): Promise<UpdateResult<User>> {
+    const updateResult: UpdateResult<User> = await db
+        .collection(config.usersCollectionName)
+        .updateOne(
+            { email: "hazardsoft@gmail.com" },
+            {
+                $set: {
+                    name: "Henadzi Shutko (updated)",
+                },
+            }
+        );
+    return updateResult;
+}
+
+async function updateTasks(db: Db): Promise<UpdateResult<Task>> {
+    const updateResult: UpdateResult<Task> = await db
+        .collection(config.tasksCollectionName)
+        .updateMany({ completed: false }, { $set: { completed: true } });
+    return updateResult;
+}
+
+export { findTask, findTasks, updateUser, updateTasks };
