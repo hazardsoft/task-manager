@@ -3,3 +3,8 @@ export type User = {
     email: string;
     age: number;
 };
+
+export type Task = {
+    description: string;
+    completed: boolean;
+};
