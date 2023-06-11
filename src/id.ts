@@ -1,60 +1,61 @@
 import { ObjectId } from "mongodb";
 
 const id: ObjectId = new ObjectId();
-console.log(`objectid: ${id}`);
-console.log(`objectid length: ${id.inspect()}`);
-console.log(`objectid timestamp: ${id.getTimestamp().getTime()}`);
+// uncomment if you want to see objectid details
+// printId(id);
 
-type ObjectIdPartial = {
-    name: string;
-    start: number;
-    end: number;
-    hex: string;
-    bin: string;
-    dec: number;
-    paddedBin: string;
-};
+function printId(id: ObjectId): void {
+    console.log(`objectid: ${id}`);
+    console.log(`objectid length: ${id.inspect()}`);
+    console.log(`objectid timestamp: ${id.getTimestamp().getTime()}`);
 
-const hex: string = id.toHexString();
-[
-    <ObjectIdPartial>{ name: "timestamp", start: 0, end: 8 },
-    <ObjectIdPartial>{ name: "random", start: 8, end: 18 },
-    <ObjectIdPartial>{ name: "counter", start: 18, end: 24 },
-].forEach((partial) => {
-    partial.hex = hex.substring(partial.start, partial.end);
-    partial.dec = parseInt(partial.hex, 16);
-    partial.bin = partial.dec.toString(2);
-    partial.paddedBin = partial.bin.padStart(partial.hex.length * 4, "0");
+    type ObjectIdPartial = {
+        name: string;
+        start: number;
+        end: number;
+        hex?: string;
+        dec?: number;
+        bin?: string;
+        paddedBin?: string;
+    };
 
+    const hex: string = id.toHexString();
+    // bytes spec is taken from MongoDB official docs: https://www.mongodb.com/docs/manual/reference/method/ObjectId/
+    const idParts: ObjectIdPartial[] = [
+        { name: "timestamp", start: 0, end: 8 },
+        { name: "random", start: 8, end: 18 },
+        { name: "counter", start: 18, end: 24 },
+    ];
+    idParts.forEach((partial) => {
+        partial.hex = hex.substring(partial.start, partial.end);
+        partial.dec = parseInt(partial.hex, 16);
+        partial.bin = partial.dec.toString(2);
+        partial.paddedBin = partial.bin.padStart(partial.hex.length * 4, "0");
+
+        console.log(
+            `${partial.name}: hex ${partial.hex}, bin ${partial.bin}, padded bin ${partial.paddedBin}, dec ${partial.dec}`
+        );
+    });
+
+    const idBufferView: Uint8Array = id.id;
+    console.log(`buffer: ${idBufferView.join(",")}`);
     console.log(
-        `${partial.name}: hex ${partial.hex}, bin ${partial.bin}, padded bin ${partial.paddedBin}, dec ${partial.dec}`
+        `buffer: length ${idBufferView.byteLength}, offset ${idBufferView.byteOffset}`
     );
-});
 
-const idBufferView: Uint8Array = id.id;
-console.log(`buffer: ${idBufferView.join(",")}`);
-console.log(
-    `buffer: length ${idBufferView.byteLength}, offset ${idBufferView.byteOffset}`
-);
+    const timestampBufferView: Uint8Array = idBufferView.subarray(0, 4);
+    console.log(`timestamp array: ${timestampBufferView.join(",")}`);
 
-const timestampBufferView: Uint8Array = idBufferView.subarray(0, 4);
-console.log(`timestamp array: ${timestampBufferView.join(",")}`);
+    const randomBufferView: Uint8Array = idBufferView.subarray(4, 9);
+    console.log(`random array: ${randomBufferView.join(",")}`);
 
-const randomBufferView: Uint8Array = idBufferView.subarray(4, 9);
-console.log(`random array: ${randomBufferView.join(",")}`);
+    const counterBufferView: Uint8Array = idBufferView.subarray(9);
+    console.log(`counter array: ${counterBufferView.join(",")}`);
 
-const counterBufferView: Uint8Array = idBufferView.subarray(9);
-console.log(`counter array: ${counterBufferView.join(",")}`);
-
-const timestampDataView: DataView = new DataView(idBufferView.buffer, 0, 4);
-console.log(
-    `read timestamp from objectid buffer: ${timestampDataView.getInt32(0)}`
-);
-
-const randomDataView: DataView = new DataView(idBufferView.buffer, 4, 5);
-console.log(`read random from objectid buffer: ${randomDataView}`);
-
-const counterDataView: DataView = new DataView(idBufferView.buffer, 9, 3);
-console.log(`read counter from objectid buffer: ${counterDataView.buffer}`);
+    const timestampDataView: DataView = new DataView(idBufferView.buffer, 0, 4);
+    console.log(
+        `read timestamp from objectid buffer: ${timestampDataView.getInt32(0)}`
+    );
+}
 
 export { id };
