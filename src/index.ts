@@ -1,9 +1,21 @@
-import { Db, MongoClient, MongoError, UpdateResult } from "mongodb";
+import {
+    Db,
+    DeleteResult,
+    MongoClient,
+    MongoError,
+    UpdateResult,
+} from "mongodb";
 import { config } from "./config.js";
 import { addUser } from "./users.js";
 import { addTasks } from "./tasks.js";
 import { Task, User } from "./types.js";
-import { findTask, findTasks, updateTasks, updateUser } from "./crud.js";
+import {
+    deleteUser,
+    findTask,
+    findTasks,
+    updateTasks,
+    updateUser,
+} from "./crud.js";
 
 const client: MongoClient = new MongoClient(config.connectionUrl);
 try {
@@ -31,6 +43,11 @@ try {
     const updatedTasks: UpdateResult<Task> = await updateTasks(db);
     console.log(
         `tasks update result: ack ${updatedTasks.acknowledged}, matched ${updatedTasks.matchedCount}, modified ${updatedTasks.modifiedCount}`
+    );
+
+    const deletedUser: DeleteResult = await deleteUser(db);
+    console.log(
+        `user delete result: ack ${deletedUser.acknowledged}, deleted ${deletedUser.deletedCount}`
     );
 } catch (e) {
     if (e instanceof MongoError) {

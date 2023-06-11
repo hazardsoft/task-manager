@@ -1,4 +1,4 @@
-import { Db, UpdateResult } from "mongodb";
+import { Db, DeleteResult, UpdateResult } from "mongodb";
 import { Task, User } from "./types.js";
 import { config } from "./config.js";
 
@@ -40,4 +40,11 @@ async function updateTasks(db: Db): Promise<UpdateResult<Task>> {
     return updateResult;
 }
 
-export { findTask, findTasks, updateUser, updateTasks };
+async function deleteUser(db: Db): Promise<DeleteResult> {
+    const deleteResult: DeleteResult = await db
+        .collection(config.usersCollectionName)
+        .deleteMany({ email: "usertodelete.com" });
+    return deleteResult;
+}
+
+export { findTask, findTasks, updateUser, updateTasks, deleteUser };
