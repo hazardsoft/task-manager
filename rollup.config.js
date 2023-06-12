@@ -11,6 +11,6 @@ export default [
             },
         ],
         plugins: [typescript()],
-        external: ["mongodb"], // required to omit warning about non-bundled dependency
+        external: ["mongodb", "mongoose", "validator/lib/isEmail.js"], // required to omit warning about non-bundled dependency
     },
 ];

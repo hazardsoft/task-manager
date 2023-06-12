@@ -1,6 +1,6 @@
 import { Collection, Db, InsertManyResult } from "mongodb";
-import { Task } from "./types.js";
-import { config } from "./config.js";
+import { Task } from "../types.js";
+import { config } from "../config.js";
 
 async function addTasks(db: Db): Promise<boolean> {
     const collection: Collection<Task> = db.collection(

@@ -1,6 +1,6 @@
 import { Db, DeleteResult, UpdateResult } from "mongodb";
-import { Task, User } from "./types.js";
-import { config } from "./config.js";
+import { Task, User } from "../types.js";
+import { config } from "../config.js";
 
 async function findTask(db: Db): Promise<Task | null> {
     const task: Task | null = await db

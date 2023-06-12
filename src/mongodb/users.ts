@@ -1,7 +1,7 @@
 import { Collection, Db, InsertOneResult } from "mongodb";
-import { User } from "./types.js";
-import { id } from "./id.js";
-import { config } from "./config.js";
+import { User } from "../types.js";
+import { id } from "../id.js";
+import { config } from "../config.js";
 
 async function addUser(db: Db): Promise<boolean> {
     const collection: Collection<User> = db.collection(

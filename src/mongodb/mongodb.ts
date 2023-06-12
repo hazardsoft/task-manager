@@ -6,8 +6,8 @@ import {
     UpdateResult,
 } from "mongodb";
 import { config } from "../config.js";
-import { addUser } from "../users.js";
-import { addTasks } from "../tasks.js";
+import { addUser } from "./users.js";
+import { addTasks } from "./tasks.js";
 import { Task, User } from "../types.js";
 import {
     deleteUser,
@@ -15,7 +15,7 @@ import {
     findTasks,
     updateTasks,
     updateUser,
-} from "../crud.js";
+} from "./crud.js";
 
 async function run(): Promise<void> {
     const client: MongoClient = new MongoClient(config.connectionUrl);

@@ -1,10 +1,10 @@
 export type User = {
     name: string;
     email: string;
-    age: number;
+    age?: number;
 };
 
 export type Task = {
     description: string;
-    completed: boolean;
+    completed?: boolean;
 };

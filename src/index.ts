@@ -1,5 +1,5 @@
-import { run as runMongo } from "./db/mongodb.js";
-import { run as runMongoose } from "./db/mongoose.js";
+import { run as runMongo } from "./mongodb/mongodb.js";
+import { run as runMongoose } from "./mongoose/mongoose.js";
 
 // await runMongo();
 // console.log("finished running mongo!");

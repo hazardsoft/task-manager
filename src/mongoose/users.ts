@@ -1,0 +1,55 @@
+import { Schema, model } from "mongoose";
+import { User } from "../types.js";
+import { config } from "../config.js";
+import isEmail from "validator/lib/isEmail.js";
+
+const userSchema: Schema<User> = new Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        validate: {
+            validator: (value: string) => {
+                return value.length > 2;
+            },
+            message: (props) => `"${props.value}" is too short for a name!`,
+        },
+    },
+    age: {
+        type: Number,
+        required: false,
+        default: 0,
+        validate: {
+            validator: (value: number) => {
+                return value > 0;
+            },
+            message: (props) => `"${props.value}" should be greater than 0!`,
+        },
+    },
+    email: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true,
+        validate: {
+            validator: (value: string) => {
+                return isEmail.default(value);
+            },
+            message: (props) => `"${props.value}" is not a valid email!`,
+        },
+    },
+});
+
+const UserModel = model("User", userSchema, config.usersCollectionName);
+
+async function createUser(user: User): Promise<boolean> {
+    try {
+        await new UserModel(user).save();
+        return true;
+    } catch (e) {
+        console.error(`error occurred while saving user: ${JSON.stringify(e)}`);
+        return false;
+    }
+}
+
+export { createUser };
