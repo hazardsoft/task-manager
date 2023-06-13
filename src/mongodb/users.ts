@@ -13,6 +13,7 @@ async function addUser(db: Db): Promise<boolean> {
             name: "Henadzi Shutko",
             email: "hazardsoft@gmail.com",
             age: 35,
+            password: "123",
         });
         console.log(
             `user is inserted: ${result.acknowledged}, id ${result.insertedId}`

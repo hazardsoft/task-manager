@@ -3,7 +3,7 @@ import { User } from "../types.js";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 
-const userSchema: Schema<User> = new Schema({
+const userSchema: Schema<User> = new Schema<User>({
     name: {
         type: String,
         required: true,
@@ -36,6 +36,19 @@ const userSchema: Schema<User> = new Schema({
                 return isEmail.default(value);
             },
             message: (props) => `"${props.value}" is not a valid email!`,
+        },
+    },
+    password: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 6,
+        validate: {
+            validator: (value: string) => {
+                return !value.toLowerCase().includes("password");
+            },
+            message: (props) =>
+                `${props.value} includes "password" word, please remove it!`,
         },
     },
 });

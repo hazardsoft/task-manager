@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import { Task } from "../types.js";
 import { config } from "../config.js";
 
-const taskSchema = new Schema({
+const taskSchema: Schema<Task> = new Schema<Task>({
     description: {
         type: String,
         required: [true, "Task description is required!"],
@@ -17,7 +17,7 @@ const taskSchema = new Schema({
     },
     completed: {
         type: Boolean,
-        required: [true, "Task status must be set upon creation!"],
+        required: false,
         default: false,
     },
 });

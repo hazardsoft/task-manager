@@ -14,6 +14,7 @@ async function run(): Promise<void> {
         name: "Henadzi Shutko",
         email: "HAZARDSOFT@gmail.com",
         age: 35,
+        password: "123456"
     });
     console.log(`user is created: ${isUserCreated}`);
 
