@@ -2,6 +2,7 @@ import { Schema, model } from "mongoose";
 import { User } from "../types.js";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
+import { ApiRequestResult } from "./types.js";
 
 const userSchema: Schema<User> = new Schema<User>({
     name: {
@@ -55,13 +56,16 @@ const userSchema: Schema<User> = new Schema<User>({
 
 const UserModel = model("User", userSchema, config.usersCollectionName);
 
-async function createUser(user: User): Promise<boolean> {
+async function createUser(user: User): Promise<ApiRequestResult> {
     try {
         await new UserModel(user).save();
-        return true;
-    } catch (e) {
-        console.error(`error occurred while saving user: ${JSON.stringify(e)}`);
-        return false;
+        return <ApiRequestResult>{ success: true };
+    } catch (e: any) {
+        return <ApiRequestResult>{
+            success: false,
+            message: "error occurred while saving user",
+            originalError: e,
+        };
     }
 }
 
