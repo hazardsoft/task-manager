@@ -1,7 +1,9 @@
+import { Task } from "./models/tasks.js";
+import { User } from "./models/users.js";
+
 type ApiRequestResult = {
     success: boolean;
-    message?: string;
-    originalError?: Error;
+    error?: Error;
 };
 
 type ApiResponseResult = {
@@ -9,4 +11,17 @@ type ApiResponseResult = {
     message: string;
 };
 
-export { ApiRequestResult, ApiResponseResult };
+type UserApiRequestResult = { user?: User } & ApiRequestResult;
+type UsersApiRequestResult = { users?: User[] } & ApiRequestResult;
+
+type TaskApiRequestResult = { task?: Task } & ApiRequestResult;
+type TasksApiRequestResult = { tasks?: Task[] } & ApiRequestResult;
+
+export {
+    ApiRequestResult,
+    ApiResponseResult,
+    UserApiRequestResult,
+    UsersApiRequestResult,
+    TaskApiRequestResult,
+    TasksApiRequestResult,
+};

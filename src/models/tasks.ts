@@ -1,8 +1,13 @@
 import { Schema, model } from "mongoose";
 import { config } from "../config.js";
-import { ApiRequestResult } from "../types.js";
+import {
+    ApiRequestResult,
+    TaskApiRequestResult,
+    TasksApiRequestResult,
+} from "../types.js";
 
 type Task = {
+    _id: string;
     description: string;
     completed?: boolean;
 };
@@ -29,17 +34,40 @@ const taskSchema: Schema<Task> = new Schema<Task>({
 
 const TaskModel = model<Task>("Task", taskSchema, config.tasksCollectionName);
 
-async function createTask(task: Task): Promise<ApiRequestResult> {
+async function createTask(task: Task): Promise<TaskApiRequestResult> {
     try {
-        await new TaskModel(task).save();
-        return <ApiRequestResult>{ success: true };
+        const createdTask: Task = await new TaskModel(task).save();
+        return <TaskApiRequestResult>{ success: true, task: createdTask };
     } catch (e) {
-        return <ApiRequestResult>{
+        return <TaskApiRequestResult>{
             success: false,
-            message: "error occurred while saving user",
-            originalError: e,
+            error: Error("error occurred while saving task", { cause: e }),
         };
     }
 }
 
-export { createTask, Task };
+async function getTask(id: string): Promise<TaskApiRequestResult> {
+    try {
+        const task: Task | null = await TaskModel.findById<Task>(id);
+        return <TaskApiRequestResult>{ success: true, task };
+    } catch (e: any) {
+        return <TaskApiRequestResult>{
+            success: false,
+            error: Error(`could not find task with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+async function getAllTasks(): Promise<TasksApiRequestResult> {
+    try {
+        const tasks: Task[] = await TaskModel.find<Task>();
+        return <TasksApiRequestResult>{ success: true, tasks };
+    } catch (e) {
+        return <TasksApiRequestResult>{
+            success: false,
+            error: Error("could not fetch all tasks", { cause: e }),
+        };
+    }
+}
+
+export { getAllTasks, createTask, getTask, Task };

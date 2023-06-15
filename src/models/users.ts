@@ -1,9 +1,10 @@
 import { Schema, model } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
-import { ApiRequestResult } from "../types.js";
+import { UserApiRequestResult, UsersApiRequestResult } from "../types.js";
 
 type User = {
+    _id: string;
     name: string;
     email: string;
     password: string;
@@ -62,17 +63,40 @@ const userSchema: Schema<User> = new Schema<User>({
 
 const UserModel = model("User", userSchema, config.usersCollectionName);
 
-async function createUser(user: User): Promise<ApiRequestResult> {
+async function createUser(user: User): Promise<UserApiRequestResult> {
     try {
-        await new UserModel(user).save();
-        return <ApiRequestResult>{ success: true };
+        const createdUser: User = await new UserModel(user).save();
+        return <UserApiRequestResult>{ user: createdUser, success: true };
     } catch (e: any) {
-        return <ApiRequestResult>{
+        return <UserApiRequestResult>{
             success: false,
-            message: "error occurred while saving user",
-            originalError: e,
+            error: Error("error occurred while saving user", { cause: e }),
         };
     }
 }
 
-export { createUser, User };
+async function getUser(id: string): Promise<UserApiRequestResult> {
+    try {
+        const user: User | null = await UserModel.findById<User>(id);
+        return <UserApiRequestResult>{ success: true, user };
+    } catch (e: any) {
+        return <UserApiRequestResult>{
+            success: false,
+            error: Error(`could not find user with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+async function getAllUsers(): Promise<UsersApiRequestResult> {
+    try {
+        const users: User[] = await UserModel.find<User>();
+        return <UsersApiRequestResult>{ success: true, users };
+    } catch (e) {
+        return <UsersApiRequestResult>{
+            success: false,
+            error: Error("could not fetch all users", { cause: e }),
+        };
+    }
+}
+
+export { getAllUsers, createUser, getUser, User };
