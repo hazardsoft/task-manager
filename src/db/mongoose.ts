@@ -4,7 +4,7 @@ import { config } from "../config.js";
 async function connect(): Promise<boolean> {
     try {
         await mongoose.connect(config.connectionUrl, {
-            dbName: "task-manager-api",
+            dbName: config.databaseName,
         });
         return true;
     } catch (e) {

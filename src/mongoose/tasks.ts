@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import { Task } from "../types.js";
 import { config } from "../config.js";
+import { ApiRequestResult, ApiResponseResult } from "./types.js";
 
 const taskSchema: Schema<Task> = new Schema<Task>({
     description: {
@@ -12,7 +13,7 @@ const taskSchema: Schema<Task> = new Schema<Task>({
                 return value.length > 1;
             },
             message: (props) =>
-                `"${props.value}" is too short for a description!`,
+                `"${props.value}" should be greater than 1 symbol!`,
         },
     },
     completed: {
@@ -24,13 +25,16 @@ const taskSchema: Schema<Task> = new Schema<Task>({
 
 const TaskModel = model<Task>("Task", taskSchema, config.tasksCollectionName);
 
-async function createTask(task: Task): Promise<boolean> {
+async function createTask(task: Task): Promise<ApiRequestResult> {
     try {
         await new TaskModel(task).save();
-        return true;
+        return <ApiRequestResult>{ success: true };
     } catch (e) {
-        console.error(`error occurred while saving task: ${JSON.stringify(e)}`);
-        return false;
+        return <ApiRequestResult>{
+            success: false,
+            message: "error occurred while saving user",
+            originalError: e,
+        };
     }
 }
 
