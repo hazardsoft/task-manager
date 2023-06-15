@@ -13,7 +13,7 @@ const userSchema: Schema<User> = new Schema<User>({
             validator: (value: string) => {
                 return value.length > 2;
             },
-            message: (props) => `"${props.value}" is too short for a name!`,
+            message: (props) => `"${props.value}" should be greater than 2!`,
         },
     },
     age: {
