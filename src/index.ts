@@ -26,12 +26,12 @@ app.post("/users", async (req, res) => {
     const user: User = req.body;
     const userResult: ApiRequestResult = await createUser(user);
     if (userResult.success) {
-        res.send(<ApiResponseResult>{
+        res.status(201).send(<ApiResponseResult>{
             code: 201,
             message: "User created successfully!",
         });
     } else {
-        res.send(<ApiResponseResult>{
+        res.status(400).send(<ApiResponseResult>{
             code: 400,
             message: `Incorrect request(${userResult.originalError?.message})`,
         });
