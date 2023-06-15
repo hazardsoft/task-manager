@@ -1,17 +1,9 @@
-import { run as runMongo } from "./mongodb/mongodb.js";
 import express from "express";
 import cors from "cors";
-import { createUser } from "./mongoose/users.js";
-import { createTask } from "./mongoose/tasks.js";
-import { Task, User } from "./types.js";
-import { connect } from "./db/mongoose.js";
-import { ApiRequestResult, ApiResponseResult } from "./mongoose/types.js";
-
-// await runMongo();
-// console.log("finished running mongo!");
-
-// await runMongoose();
-// console.log("finished running mongoose!");
+import { createUser, User } from "./models/users.js";
+import { createTask, Task } from "./models/tasks.js";
+import { connect } from "./db.js";
+import { ApiRequestResult, ApiResponseResult } from "./types.js";
 
 const port = process.env.PORT || 3000;
 

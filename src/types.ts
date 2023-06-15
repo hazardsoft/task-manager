@@ -1,11 +1,12 @@
-export type User = {
-    name: string;
-    email: string;
-    password: string;
-    age?: number;
+type ApiRequestResult = {
+    success: boolean;
+    message?: string;
+    originalError?: Error;
 };
 
-export type Task = {
-    description: string;
-    completed?: boolean;
+type ApiResponseResult = {
+    code: number;
+    message: string;
 };
+
+export { ApiRequestResult, ApiResponseResult };

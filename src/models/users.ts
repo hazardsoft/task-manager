@@ -1,8 +1,14 @@
 import { Schema, model } from "mongoose";
-import { User } from "../types.js";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
-import { ApiRequestResult } from "./types.js";
+import { ApiRequestResult } from "../types.js";
+
+type User = {
+    name: string;
+    email: string;
+    password: string;
+    age?: number;
+};
 
 const userSchema: Schema<User> = new Schema<User>({
     name: {
@@ -69,4 +75,4 @@ async function createUser(user: User): Promise<ApiRequestResult> {
     }
 }
 
-export { createUser };
+export { createUser, User };

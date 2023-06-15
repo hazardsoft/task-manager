@@ -1,7 +1,11 @@
 import { Schema, model } from "mongoose";
-import { Task } from "../types.js";
 import { config } from "../config.js";
-import { ApiRequestResult, ApiResponseResult } from "./types.js";
+import { ApiRequestResult } from "../types.js";
+
+type Task = {
+    description: string;
+    completed?: boolean;
+};
 
 const taskSchema: Schema<Task> = new Schema<Task>({
     description: {
@@ -38,4 +42,4 @@ async function createTask(task: Task): Promise<ApiRequestResult> {
     }
 }
 
-export { createTask };
+export { createTask, Task };
