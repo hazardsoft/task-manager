@@ -2,6 +2,7 @@ import { Schema, model } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
+import bcrypt from "bcrypt";
 
 type User = {
     _id: string;
@@ -61,6 +62,13 @@ const userSchema: Schema<User> = new Schema<User>({
     },
 });
 
+userSchema.pre("save", async function () {
+    const user = this;
+    if (user.isModified("password")) {
+        user.password = await bcrypt.hash(user.password, 8);
+    }
+});
+
 const UserModel = model("User", userSchema, config.usersCollectionName);
 
 async function createUser(user: User): Promise<UserApiResult> {
@@ -111,14 +119,15 @@ async function deleteUser(id: string): Promise<UserApiResult> {
     }
 }
 
-async function updateUser(id: string, update: User): Promise<UserApiResult> {
+async function updateUser(id: string, updates: User): Promise<UserApiResult> {
     try {
-        const updatedUser: User | null = await UserModel.findByIdAndUpdate(
-            id,
-            update,
-            { new: true, runValidators: true }
-        );
-        return <UserApiResult>{ success: true, user: updatedUser };
+        const user = await UserModel.findById(id);
+        if (!user) {
+            return <UserApiResult>{ success: true };
+        }
+        Object.assign(user, updates);
+        await user.save();
+        return <UserApiResult>{ success: true, user };
     } catch (e) {
         return <UserApiResult>{
             success: false,
