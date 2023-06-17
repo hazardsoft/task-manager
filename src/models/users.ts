@@ -127,4 +127,18 @@ async function updateUser(id: string, update: User): Promise<UserApiResult> {
     }
 }
 
-export { getAllUsers, createUser, getUser, deleteUser, updateUser, User };
+function getAllowedUpdates(): string[] {
+    return Object.keys(UserModel.schema.paths).filter(
+        (path) => !path.startsWith("_")
+    );
+}
+
+export {
+    getAllUsers,
+    createUser,
+    getUser,
+    deleteUser,
+    updateUser,
+    getAllowedUpdates,
+    User,
+};

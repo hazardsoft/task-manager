@@ -94,4 +94,18 @@ async function updateTask(id: string, update: Task): Promise<TaskApiResult> {
     }
 }
 
-export { getAllTasks, createTask, getTask, deleteTask, updateTask, Task };
+function getAllowedUpdates(): string[] {
+    return Object.keys(TaskModel.schema.paths).filter(
+        (path) => !path.startsWith("_")
+    );
+}
+
+export {
+    getAllTasks,
+    createTask,
+    getTask,
+    deleteTask,
+    updateTask,
+    getAllowedUpdates,
+    Task,
+};

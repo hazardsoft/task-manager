@@ -7,10 +7,12 @@ import {
     getUser,
     updateUser,
     User,
+    getAllowedUpdates as allowedUserUpdates,
 } from "./models/users.js";
 import {
     createTask,
     deleteTask,
+    getAllowedUpdates as allowedTaskUpdates,
     getAllTasks,
     getTask,
     Task,
@@ -170,20 +172,21 @@ app.post("/tasks", async (req, res) => {
 
 app.patch("/tasks/:id", async (req, res) => {
     const id: string = req.params.id;
-    const update: Task = req.body;
+    const updates: Task = req.body;
 
-    const allowedOperations = ["description", "completed"];
-    const isAllowedUpdate: boolean = Object.keys(update).every((field) =>
-        allowedOperations.includes(field)
+    const updateFields: string[] = Object.keys(updates);
+    const allowedUpdates: string[] = allowedTaskUpdates();
+    const isAllowedUpdate: boolean = updateFields.every((field: string) =>
+        allowedUpdates.includes(field)
     );
     if (!isAllowedUpdate) {
         return res.status(400).send(<ApiResponse>{
             code: 400,
-            message: `Incorrect request(${JSON.stringify(update)})`,
+            message: `Incorrect request(${JSON.stringify(updates)})`,
         });
     }
 
-    const taskResult: TaskApiResult = await updateTask(id, update);
+    const taskResult: TaskApiResult = await updateTask(id, updates);
     if (taskResult.success) {
         if (taskResult.task) {
             return res.status(200).send(taskResult.task);
@@ -199,20 +202,21 @@ app.patch("/tasks/:id", async (req, res) => {
 
 app.patch("/users/:id", async (req, res) => {
     const id: string = req.params.id;
-    const update: User = req.body;
+    const updates: User = req.body;
 
-    const allowedOperations = ["name", "email", "password", "age"];
-    const isAllowedUpdate: boolean = Object.keys(update).every((field) =>
-        allowedOperations.includes(field)
+    const updateFields: string[] = Object.keys(updates);
+    const allowedUpdates: string[] = allowedUserUpdates();
+    const isAllowedUpdate: boolean = updateFields.every((field: string) =>
+        allowedUpdates.includes(field)
     );
     if (!isAllowedUpdate) {
         res.status(400).send(<ApiResponse>{
             code: 400,
-            message: `Incorrect request(${JSON.stringify(update)})`,
+            message: `Incorrect request(${JSON.stringify(updates)})`,
         });
     }
 
-    const userResult: UserApiResult = await updateUser(id, update);
+    const userResult: UserApiResult = await updateUser(id, updates);
     if (userResult.success) {
         if (userResult.user) {
             return res.status(200).send(userResult.user);
