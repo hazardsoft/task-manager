@@ -1,10 +1,6 @@
 import { Schema, model } from "mongoose";
 import { config } from "../config.js";
-import {
-    ApiRequestResult,
-    TaskApiRequestResult,
-    TasksApiRequestResult,
-} from "../types.js";
+import { TaskApiRequestResult, TasksApiRequestResult } from "../types.js";
 
 type Task = {
     _id: string;
@@ -70,4 +66,16 @@ async function getAllTasks(): Promise<TasksApiRequestResult> {
     }
 }
 
-export { getAllTasks, createTask, getTask, Task };
+async function deleteTask(id: string): Promise<TaskApiRequestResult> {
+    try {
+        const task: Task | null = await TaskModel.findByIdAndDelete(id);
+        return <TaskApiRequestResult>{ success: true, task };
+    } catch (e) {
+        return <TaskApiRequestResult>{
+            success: false,
+            error: Error(`could not find task with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+export { getAllTasks, createTask, getTask, deleteTask, Task };

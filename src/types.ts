@@ -6,7 +6,7 @@ type ApiRequestResult = {
     error?: Error;
 };
 
-type ApiResponseResult = {
+type ApiResponse = {
     code: number;
     message: string;
 };
@@ -19,7 +19,7 @@ type TasksApiRequestResult = { tasks?: Task[] } & ApiRequestResult;
 
 export {
     ApiRequestResult,
-    ApiResponseResult,
+    ApiResponse,
     UserApiRequestResult,
     UsersApiRequestResult,
     TaskApiRequestResult,
