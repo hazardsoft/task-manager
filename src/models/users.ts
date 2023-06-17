@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
-import { UserApiRequestResult, UsersApiRequestResult } from "../types.js";
+import { UserApiResult, UsersApiResult } from "../types.js";
 
 type User = {
     _id: string;
@@ -63,40 +63,68 @@ const userSchema: Schema<User> = new Schema<User>({
 
 const UserModel = model("User", userSchema, config.usersCollectionName);
 
-async function createUser(user: User): Promise<UserApiRequestResult> {
+async function createUser(user: User): Promise<UserApiResult> {
     try {
         const createdUser: User = await new UserModel(user).save();
-        return <UserApiRequestResult>{ user: createdUser, success: true };
+        return <UserApiResult>{ user: createdUser, success: true };
     } catch (e: any) {
-        return <UserApiRequestResult>{
+        return <UserApiResult>{
             success: false,
             error: Error("error occurred while saving user", { cause: e }),
         };
     }
 }
 
-async function getUser(id: string): Promise<UserApiRequestResult> {
+async function getUser(id: string): Promise<UserApiResult> {
     try {
         const user: User | null = await UserModel.findById<User>(id);
-        return <UserApiRequestResult>{ success: true, user };
+        return <UserApiResult>{ success: true, user };
     } catch (e: any) {
-        return <UserApiRequestResult>{
+        return <UserApiResult>{
             success: false,
             error: Error(`could not find user with id ${id}`, { cause: e }),
         };
     }
 }
 
-async function getAllUsers(): Promise<UsersApiRequestResult> {
+async function getAllUsers(): Promise<UsersApiResult> {
     try {
         const users: User[] = await UserModel.find<User>();
-        return <UsersApiRequestResult>{ success: true, users };
+        return <UsersApiResult>{ success: true, users };
     } catch (e) {
-        return <UsersApiRequestResult>{
+        return <UsersApiResult>{
             success: false,
             error: Error("could not fetch all users", { cause: e }),
         };
     }
 }
 
-export { getAllUsers, createUser, getUser, User };
+async function deleteUser(id: string): Promise<UserApiResult> {
+    try {
+        const user: User | null = await UserModel.findByIdAndDelete(id);
+        return <UserApiResult>{ success: true, user };
+    } catch (e) {
+        return <UserApiResult>{
+            success: false,
+            error: Error(`could not find user with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+async function updateUser(id: string, update: User): Promise<UserApiResult> {
+    try {
+        const updatedUser: User | null = await UserModel.findByIdAndUpdate(
+            id,
+            update,
+            { new: true, runValidators: true }
+        );
+        return <UserApiResult>{ success: true, user: updatedUser };
+    } catch (e) {
+        return <UserApiResult>{
+            success: false,
+            error: Error(`could not update user with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+export { getAllUsers, createUser, getUser, deleteUser, updateUser, User };

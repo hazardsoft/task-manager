@@ -11,17 +11,17 @@ type ApiResponse = {
     message: string;
 };
 
-type UserApiRequestResult = { user?: User } & ApiRequestResult;
-type UsersApiRequestResult = { users?: User[] } & ApiRequestResult;
+type UserApiResult = { user?: User } & ApiRequestResult;
+type UsersApiResult = { users?: User[] } & ApiRequestResult;
 
-type TaskApiRequestResult = { task?: Task } & ApiRequestResult;
-type TasksApiRequestResult = { tasks?: Task[] } & ApiRequestResult;
+type TaskApiResult = { task?: Task } & ApiRequestResult;
+type TasksApiResult = { tasks?: Task[] } & ApiRequestResult;
 
 export {
     ApiRequestResult,
     ApiResponse,
-    UserApiRequestResult,
-    UsersApiRequestResult,
-    TaskApiRequestResult,
-    TasksApiRequestResult,
+    UserApiResult,
+    UsersApiResult,
+    TaskApiResult,
+    TasksApiResult,
 };
