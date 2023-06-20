@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Model, Schema, model } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
@@ -12,7 +12,11 @@ type User = {
     age?: number;
 };
 
-const userSchema: Schema<User> = new Schema<User>({
+interface IUserModel extends Model<User> {
+    findByCredentials(email: string, password: string): Promise<UserApiResult>;
+}
+
+const userSchema: Schema<User, IUserModel> = new Schema<User, IUserModel>({
     name: {
         type: String,
         required: true,
@@ -40,6 +44,7 @@ const userSchema: Schema<User> = new Schema<User>({
         required: true,
         lowercase: true,
         trim: true,
+        unique: true,
         validate: {
             validator: (value: string) => {
                 return isEmail.default(value);
@@ -62,6 +67,31 @@ const userSchema: Schema<User> = new Schema<User>({
     },
 });
 
+userSchema.static(
+    "findByCredentials",
+    async (email: string, password: string): Promise<UserApiResult> => {
+        try {
+            const user: User | null = await UserModel.findOne<User>({ email });
+            if (!user) {
+                return <UserApiResult>{ success: true };
+            }
+            const isMatch: boolean = await bcrypt.compare(
+                password,
+                user.password
+            );
+            if (!isMatch) {
+                return <UserApiResult>{ success: true };
+            }
+            return <UserApiResult>{ success: true, user };
+        } catch (e) {
+            return <UserApiResult>{
+                success: false,
+                error: Error(`can not login user`, { cause: e }),
+            };
+        }
+    }
+);
+
 userSchema.pre("save", async function () {
     const user = this;
     if (user.isModified("password")) {
@@ -69,7 +99,11 @@ userSchema.pre("save", async function () {
     }
 });
 
-const UserModel = model("User", userSchema, config.usersCollectionName);
+const UserModel = model<User, IUserModel>(
+    "User",
+    userSchema,
+    config.usersCollectionName
+);
 
 async function createUser(user: User): Promise<UserApiResult> {
     try {
@@ -136,6 +170,13 @@ async function updateUser(id: string, updates: User): Promise<UserApiResult> {
     }
 }
 
+async function loginUser(
+    email: string,
+    password: string
+): Promise<UserApiResult> {
+    return UserModel.findByCredentials(email, password);
+}
+
 function getAllowedUpdates(): string[] {
     return Object.keys(UserModel.schema.paths).filter(
         (path) => !path.startsWith("_")
@@ -149,5 +190,6 @@ export {
     deleteUser,
     updateUser,
     getAllowedUpdates,
+    loginUser,
     User,
 };

@@ -6,12 +6,34 @@ import {
     deleteUser,
     updateUser,
     getAllowedUpdates,
+    loginUser,
     User,
 } from "../models/users.js";
 import { UserApiResult, ApiResponse, UsersApiResult } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../routers/common.js";
 
 const router = express.Router();
+
+router.post("/users/login", async (req, res) => {
+    const email: string = req.body.email;
+    const password: string = req.body.password;
+    if (email && password) {
+        const userResult: UserApiResult = await loginUser(email, password);
+        if (userResult.success && userResult.user) {
+            res.status(200).send(userResult.user);
+        } else {
+            res.status(400).send(<ApiResponse>{
+                code: 400,
+                message: "can not login user",
+            });
+        }
+    } else {
+        res.status(400).send(<ApiResponse>{
+            code: 400,
+            message: "Invalid request(email, password)",
+        });
+    }
+});
 
 router.post("/users", async (req, res) => {
     const user: User = req.body;
