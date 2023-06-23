@@ -1,5 +1,5 @@
 import { Task } from "./models/tasks.js";
-import { User } from "./models/users.js";
+import { User, IUserMethods } from "./models/users.js";
 
 type ApiRequestResult = {
     success: boolean;
@@ -11,8 +11,12 @@ type ApiResponse = {
     message: string;
 };
 
-type UserApiResult = { user?: User } & ApiRequestResult;
-type UsersApiResult = { users?: User[] } & ApiRequestResult;
+type UserApiResult = {
+    user?: User & IUserMethods;
+} & ApiRequestResult;
+type UsersApiResult = {
+    users?: (User & IUserMethods)[];
+} & ApiRequestResult;
 
 type TaskApiResult = { task?: Task } & ApiRequestResult;
 type TasksApiResult = { tasks?: Task[] } & ApiRequestResult;

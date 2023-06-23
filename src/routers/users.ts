@@ -20,7 +20,8 @@ router.post("/users/login", async (req, res) => {
     if (email && password) {
         const userResult: UserApiResult = await loginUser(email, password);
         if (userResult.success && userResult.user) {
-            res.status(200).send(userResult.user);
+            const token: string = await userResult.user.generateAuthToken();
+            res.status(200).send({ user: userResult.user, token });
         } else {
             res.status(400).send(<ApiResponse>{
                 code: 400,
@@ -39,12 +40,13 @@ router.post("/users", async (req, res) => {
     const user: User = req.body;
     const userResult: UserApiResult = await createUser(user);
     if (userResult.success && userResult.user) {
+        const token: string = await userResult.user.generateAuthToken();
         res.status(201)
             .setHeader(
                 "Location",
                 `${getFullResourcePath(req)}/${userResult.user._id}`
             )
-            .send(userResult.user);
+            .send({ user: userResult.user, token });
     } else {
         res.status(400).send(<ApiResponse>{
             code: 400,

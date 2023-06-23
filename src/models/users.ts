@@ -1,22 +1,39 @@
-import { Model, Schema, model } from "mongoose";
+import { Model, Schema, model, Types } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+const jwtPrivateKey: string = "1234567890!";
 
 type User = {
-    _id: string;
+    _id: Types.ObjectId;
     name: string;
     email: string;
     password: string;
     age?: number;
+    tokens: Token[];
 };
 
-interface IUserModel extends Model<User> {
+type Token = {
+    _id: Types.ObjectId;
+    token: string;
+};
+
+interface IUserModel extends Model<User, {}, IUserMethods> {
     findByCredentials(email: string, password: string): Promise<UserApiResult>;
 }
 
-const userSchema: Schema<User, IUserModel> = new Schema<User, IUserModel>({
+interface IUserMethods {
+    generateAuthToken(): Promise<string>;
+}
+
+const userSchema: Schema<User, IUserModel, IUserMethods> = new Schema<
+    User,
+    IUserModel,
+    IUserMethods
+>({
     name: {
         type: String,
         required: true,
@@ -65,13 +82,29 @@ const userSchema: Schema<User, IUserModel> = new Schema<User, IUserModel>({
                 `${props.value} includes "password" word, please remove it!`,
         },
     },
+    tokens: [
+        {
+            token: {
+                type: String,
+                required: true,
+            },
+        },
+    ],
+});
+
+userSchema.method("generateAuthToken", async function () {
+    const user = this;
+    const token: string = jwt.sign({ id: user._id }, jwtPrivateKey);
+    user.tokens = user.tokens.concat({ token });
+    user.save();
+    return token;
 });
 
 userSchema.static(
     "findByCredentials",
     async (email: string, password: string): Promise<UserApiResult> => {
         try {
-            const user: User | null = await UserModel.findOne<User>({ email });
+            const user = await UserModel.findOne<User>({ email });
             if (!user) {
                 return <UserApiResult>{ success: true };
             }
@@ -192,4 +225,6 @@ export {
     getAllowedUpdates,
     loginUser,
     User,
+    Token,
+    IUserMethods,
 };
