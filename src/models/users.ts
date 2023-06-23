@@ -3,9 +3,7 @@ import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-
-const jwtPrivateKey: string = "1234567890!";
+import { generateAuthToken } from "../middleware/auth.js";
 
 type User = {
     _id: Types.ObjectId;
@@ -94,7 +92,7 @@ const userSchema: Schema<User, IUserModel, IUserMethods> = new Schema<
 
 userSchema.method("generateAuthToken", async function () {
     const user = this;
-    const token: string = jwt.sign({ id: user._id }, jwtPrivateKey);
+    const token: string = generateAuthToken(user._id);
     user.tokens = user.tokens.concat({ token });
     user.save();
     return token;
@@ -225,6 +223,7 @@ export {
     getAllowedUpdates,
     loginUser,
     User,
+    UserModel,
     Token,
     IUserMethods,
 };

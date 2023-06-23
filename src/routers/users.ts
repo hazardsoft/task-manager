@@ -11,6 +11,7 @@ import {
 } from "../models/users.js";
 import { UserApiResult, ApiResponse, UsersApiResult } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../routers/common.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -55,7 +56,7 @@ router.post("/users", async (req, res) => {
     }
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", auth, async (req, res) => {
     const usersResult: UsersApiResult = await getAllUsers();
     if (usersResult.success) {
         res.status(200).send(usersResult.users);
@@ -67,6 +68,10 @@ router.get("/users", async (req, res) => {
     } else {
         sendInternalError(usersResult, res);
     }
+});
+
+router.get("/users/me", auth, (req, res) => {
+    res.status(200).send(req.body.user);
 });
 
 router.get("/users/:id", async (req, res) => {

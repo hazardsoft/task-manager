@@ -3,6 +3,7 @@ export type Config = {
     databaseName: string;
     usersCollectionName: string;
     tasksCollectionName: string;
+    jwtPrivateKey: string;
 };
 
 export const config = <Config>{
@@ -10,4 +11,5 @@ export const config = <Config>{
     databaseName: "task-manager",
     usersCollectionName: "users",
     tasksCollectionName: "tasks",
+    jwtPrivateKey: "1234567890!",
 };
