@@ -1,17 +1,13 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import {
-    createUser,
-    getAllUsers,
-    getUser,
-    deleteUser,
-    updateUser,
     getAllowedUpdates,
     loginUser,
-    User,
+    IUser,
 } from "../models/users.js";
 import { UserApiResult, ApiResponse, UsersApiResult } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../routers/common.js";
 import { auth } from "../middleware/auth.js";
+import { createUser, deleteUser, getAllUsers, getUser, updateUser } from "../repositories/users.js";
 
 const router = express.Router();
 
@@ -21,7 +17,7 @@ router.post("/users/login", async (req, res) => {
     if (email && password) {
         const userResult: UserApiResult = await loginUser(email, password);
         if (userResult.success && userResult.user) {
-            const token: string = await userResult.user.generateAuthToken();
+            const token: string = await userResult.user.generateToken();
             res.status(200).send({ user: userResult.user, token });
         } else {
             res.status(400).send(<ApiResponse>{
@@ -38,10 +34,10 @@ router.post("/users/login", async (req, res) => {
 });
 
 router.post("/users", async (req, res) => {
-    const user: User = req.body;
+    const user: IUser = req.body;
     const userResult: UserApiResult = await createUser(user);
     if (userResult.success && userResult.user) {
-        const token: string = await userResult.user.generateAuthToken();
+        const token: string = await userResult.user.generateToken();
         res.status(201)
             .setHeader(
                 "Location",
@@ -56,7 +52,7 @@ router.post("/users", async (req, res) => {
     }
 });
 
-router.get("/users", auth, async (req, res) => {
+router.get("/users", async (req, res) => {
     const usersResult: UsersApiResult = await getAllUsers();
     if (usersResult.success) {
         res.status(200).send(usersResult.users);
@@ -70,8 +66,8 @@ router.get("/users", auth, async (req, res) => {
     }
 });
 
-router.get("/users/me", auth, (req, res) => {
-    res.status(200).send(req.body.user);
+router.get("/users/me", auth, (req:Request, res:Response) => {
+    res.status(200).send(req.user);
 });
 
 router.get("/users/:id", async (req, res) => {
@@ -92,7 +88,7 @@ router.get("/users/:id", async (req, res) => {
 
 router.patch("/users/:id", async (req, res) => {
     const id: string = req.params.id;
-    const updates: User = req.body;
+    const updates: IUser = req.body;
 
     const updateFields: string[] = Object.keys(updates);
     const allowedUpdates: string[] = getAllowedUpdates();

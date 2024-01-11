@@ -1,34 +1,30 @@
-import { Model, Schema, model, Types } from "mongoose";
+import { Model, Schema, model, HydratedDocument } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
-import { UserApiResult, UsersApiResult } from "../types.js";
+import { UserApiResult } from "../types.js";
 import bcrypt from "bcrypt";
-import { generateAuthToken } from "../middleware/auth.js";
+import { signToken } from "../utils/jwt.js";
 
-type User = {
-    _id: Types.ObjectId;
+interface IUser {
     name: string;
     email: string;
     password: string;
     age?: number;
-    tokens: Token[];
-};
-
-type Token = {
-    _id: Types.ObjectId;
-    token: string;
-};
-
-interface IUserModel extends Model<User, {}, IUserMethods> {
-    findByCredentials(email: string, password: string): Promise<UserApiResult>;
+    tokens: {
+        token: string;
+    }[]
 }
 
 interface IUserMethods {
-    generateAuthToken(): Promise<string>;
+    generateToken(): Promise<string>;
 }
 
-const userSchema: Schema<User, IUserModel, IUserMethods> = new Schema<
-    User,
+interface IUserModel extends Model<IUser, {}, IUserMethods>  {
+    findByCredentials: (email: string, password: string) => Promise<UserApiResult>;
+}
+
+const userSchema = new Schema<
+    IUser,
     IUserModel,
     IUserMethods
 >({
@@ -90,28 +86,28 @@ const userSchema: Schema<User, IUserModel, IUserMethods> = new Schema<
     ],
 });
 
-userSchema.method("generateAuthToken", async function () {
+userSchema.method<HydratedDocument<IUser>>("generateToken", async function () { 
     const user = this;
-    const token: string = generateAuthToken(user._id);
+    const token = signToken(user.id);
     user.tokens = user.tokens.concat({ token });
-    user.save();
+    await user.save();
     return token;
-});
+})
 
 userSchema.static(
     "findByCredentials",
     async (email: string, password: string): Promise<UserApiResult> => {
         try {
-            const user = await UserModel.findOne<User>({ email });
+            const user = await UserModel.findOne({ email });
             if (!user) {
-                return <UserApiResult>{ success: true };
+                return { success: true };
             }
             const isMatch: boolean = await bcrypt.compare(
                 password,
                 user.password
             );
             if (!isMatch) {
-                return <UserApiResult>{ success: true };
+                return { success: true };
             }
             return <UserApiResult>{ success: true, user };
         } catch (e) {
@@ -125,81 +121,17 @@ userSchema.static(
 
 userSchema.pre("save", async function () {
     const user = this;
-    if (user.isModified("password")) {
+    const isPassModified = user.isModified("password");
+    if (isPassModified) {
         user.password = await bcrypt.hash(user.password, 8);
     }
 });
 
-const UserModel = model<User, IUserModel>(
+const UserModel = model<IUser, IUserModel>(
     "User",
     userSchema,
     config.usersCollectionName
 );
-
-async function createUser(user: User): Promise<UserApiResult> {
-    try {
-        const createdUser: User = await new UserModel(user).save();
-        return <UserApiResult>{ user: createdUser, success: true };
-    } catch (e: any) {
-        return <UserApiResult>{
-            success: false,
-            error: Error("error occurred while saving user", { cause: e }),
-        };
-    }
-}
-
-async function getUser(id: string): Promise<UserApiResult> {
-    try {
-        const user: User | null = await UserModel.findById<User>(id);
-        return <UserApiResult>{ success: true, user };
-    } catch (e: any) {
-        return <UserApiResult>{
-            success: false,
-            error: Error(`could not find user with id ${id}`, { cause: e }),
-        };
-    }
-}
-
-async function getAllUsers(): Promise<UsersApiResult> {
-    try {
-        const users: User[] = await UserModel.find<User>();
-        return <UsersApiResult>{ success: true, users };
-    } catch (e) {
-        return <UsersApiResult>{
-            success: false,
-            error: Error("could not fetch all users", { cause: e }),
-        };
-    }
-}
-
-async function deleteUser(id: string): Promise<UserApiResult> {
-    try {
-        const user: User | null = await UserModel.findByIdAndDelete(id);
-        return <UserApiResult>{ success: true, user };
-    } catch (e) {
-        return <UserApiResult>{
-            success: false,
-            error: Error(`could not find user with id ${id}`, { cause: e }),
-        };
-    }
-}
-
-async function updateUser(id: string, updates: User): Promise<UserApiResult> {
-    try {
-        const user = await UserModel.findById(id);
-        if (!user) {
-            return <UserApiResult>{ success: true };
-        }
-        Object.assign(user, updates);
-        await user.save();
-        return <UserApiResult>{ success: true, user };
-    } catch (e) {
-        return <UserApiResult>{
-            success: false,
-            error: Error(`could not update user with id ${id}`, { cause: e }),
-        };
-    }
-}
 
 async function loginUser(
     email: string,
@@ -215,15 +147,9 @@ function getAllowedUpdates(): string[] {
 }
 
 export {
-    getAllUsers,
-    createUser,
-    getUser,
-    deleteUser,
-    updateUser,
     getAllowedUpdates,
     loginUser,
-    User,
+    IUser,
     UserModel,
-    Token,
-    IUserMethods,
+    IUserMethods
 };

@@ -1,5 +1,15 @@
-import { Task } from "./models/tasks.js";
-import { User, IUserMethods } from "./models/users.js";
+import { Types } from "mongoose";
+import { ITask } from "./models/tasks.js";
+import { IUser, IUserMethods } from "./models/users.js";
+
+type User = IUser & IUserMethods & { _id: Types.ObjectId };
+type Task = ITask & {_id:Types.ObjectId};
+
+declare module "express" {
+    interface Request {
+        user?: User;
+    }
+}
 
 type ApiRequestResult = {
     success: boolean;
@@ -12,10 +22,10 @@ type ApiResponse = {
 };
 
 type UserApiResult = {
-    user?: User & IUserMethods;
+    user?: User;
 } & ApiRequestResult;
 type UsersApiResult = {
-    users?: (User & IUserMethods)[];
+    users?: User[];
 } & ApiRequestResult;
 
 type TaskApiResult = { task?: Task } & ApiRequestResult;

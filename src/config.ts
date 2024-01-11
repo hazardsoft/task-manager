@@ -1,15 +1,10 @@
-export type Config = {
-    connectionUrl: string;
-    databaseName: string;
-    usersCollectionName: string;
-    tasksCollectionName: string;
-    jwtPrivateKey: string;
-};
-
-export const config = <Config>{
-    connectionUrl: "mongodb://127.0.0.1:27017",
+export const config = {
+    connectionUrl: "mongodb://localhost:27017",
     databaseName: "task-manager",
+    databaseUserName: "admin",
+    databaseUserPass: "password",
     usersCollectionName: "users",
     tasksCollectionName: "tasks",
     jwtPrivateKey: "1234567890!",
-};
+    jwtTokenExpiration: "1d"
+} as const;

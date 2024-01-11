@@ -1,56 +1,35 @@
-import { Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { config } from "../config.js";
-import { UserModel } from "../models/users.js";
+import { Request, Response, NextFunction } from "express";
+import { getUserByToken } from "../repositories/users.js";
+import { verifyToken } from "../utils/jwt.js";
 
-interface IAuthPayload {
-    id: string;
-}
-
-function generateAuthToken(id: string): string {
-    return jwt.sign(<IAuthPayload>{ id }, config.jwtPrivateKey);
-}
-
-function decodeAuthToken(token: string): IAuthPayload | null {
-    const payload: JwtPayload | string = jwt.verify(
-        token,
-        config.jwtPrivateKey
-    );
-    if (isAuthPayload(payload)) {
-        return payload;
-    }
-    return null;
-}
-
-function isAuthPayload(payload: JwtPayload | string): payload is IAuthPayload {
-    return (payload as IAuthPayload).id !== undefined;
-}
-
-const auth = async (req: Request, res: Response, next: any) => {
+const auth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token: string | undefined = req
+        const token = req
             .header("Authorization")
             ?.replace("Bearer ", "");
         if (token) {
-            const payload: IAuthPayload | null = decodeAuthToken(token);
+            const payload = verifyToken(token);
             if (payload) {
-                const user = await UserModel.findOne({
-                    _id: payload.id,
-                    "tokens.token": token,
-                });
-                if (user) {
-                    req.body.user = user;
+                const userResult = await getUserByToken(payload.id, token)
+                if (userResult.success && userResult.user) {
+                    req.user = userResult.user;
                     next();
                 } else {
-                    throw new Error(`user id ${payload.id} does not exist`);
+                    throw new Error(`user id ${payload.id} does not exist!`);
                 }
+            } else {
+                throw new Error("auth payload is incorrect!");
             }
         } else {
             throw new Error("token is invalid!");
         }
     } catch (e) {
-        res.status(401).send();
+        const error = { message: "Please, authenticate" };
+        if (e instanceof Error) {
+            error.message = e.message;
+        }
+        res.status(401).send(error);
     }
 };
 
-export { auth, generateAuthToken };
+export { auth };
