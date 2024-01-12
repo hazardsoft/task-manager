@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { User } from "../models/users.js";
 import { ApiResponse } from "../types.js";
-import { getFullResourcePath, sendInternalError } from "../routers/common.js";
+import { getFullResourcePath, sendInternalError } from "../utils/path.js";
 import { auth } from "../middleware/auth.js";
 import { createUser, deleteUser, getAllowedUpdates, getUser, loginUser, updateUser } from "../repositories/users.js";
 
@@ -76,7 +76,9 @@ router.post("/users", async (req, res) => {
     }
 });
 
-router.get("/users/me", auth, (req:Request, res:Response) => {
+router.get("/users/me", auth, async (req: Request, res: Response) => {
+    // Populates virtual "tasks" property with foreign key "authorId"
+    await req.user?.populate("tasks");
     res.status(200).send(req.user);
 });
 

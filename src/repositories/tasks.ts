@@ -25,6 +25,18 @@ async function getTask(id: string): Promise<TaskApiResult> {
     }
 }
 
+async function getTaskOfAuthor(taskId: string, authorId:string): Promise<TaskApiResult> {
+    try {
+        const task = await TaskModel.findOne({_id: taskId, authorId});
+        return { success: true, task };
+    } catch (e: any) {
+        return {
+            success: false,
+            error: Error(`could not find task with id ${taskId}`, { cause: e }),
+        };
+    }
+}
+
 async function getAllTasks(): Promise<TasksApiResult> {
     try {
         const tasks = await TaskModel.find();
@@ -37,9 +49,33 @@ async function getAllTasks(): Promise<TasksApiResult> {
     }
 }
 
+async function getAllTasksOfAuthor(authorId:string): Promise<TasksApiResult> {
+    try {
+        const tasks = await TaskModel.find({authorId});
+        return { success: true, tasks };
+    } catch (e) {
+        return {
+            success: false,
+            error: Error("could not fetch all tasks", { cause: e }),
+        };
+    }
+}
+
 async function deleteTask(id: string): Promise<TaskApiResult> {
     try {
         const task = await TaskModel.findByIdAndDelete(id);
+        return { success: true, task };
+    } catch (e) {
+        return {
+            success: false,
+            error: Error(`could not find task with id ${id}`, { cause: e }),
+        };
+    }
+}
+
+async function deleteTaskOfAuthor(id: string, authorId:string): Promise<TaskApiResult> {
+    try {
+        const task = await TaskModel.findOneAndDelete({_id:id, authorId});
         return { success: true, task };
     } catch (e) {
         return {
@@ -66,10 +102,31 @@ async function updateTask(id: string, updates: Task): Promise<TaskApiResult> {
     }
 }
 
+async function updateTaskOfAuthor(id: string, authorId:string, updates: Task): Promise<TaskApiResult> {
+    try {
+        const task = await TaskModel.findOne({_id: id, authorId});
+        if (!task) {
+            return { success: true };
+        }
+        Object.assign(task, updates);
+        await task.save();
+        return { success: true, task };
+    } catch (e) {
+        return {
+            success: false,
+            error: Error(`could not update task with id ${id}`, { cause: e }),
+        };
+    }
+}
+
 export {
     getAllTasks,
+    getAllTasksOfAuthor,
     createTask,
     getTask,
+    getTaskOfAuthor,
     deleteTask,
+    deleteTaskOfAuthor,
     updateTask,
+    updateTaskOfAuthor,
 };

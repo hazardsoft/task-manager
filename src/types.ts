@@ -1,9 +1,9 @@
 import { HydratedDocument } from "mongoose";
-import { Task as InternalTask } from "./models/tasks.js";
+import { Task as InternalTask, TaskMethods } from "./models/tasks.js";
 import { User as InternalUser, UserMethods } from "./models/users.js";
 
 type User = HydratedDocument<InternalUser, UserMethods>;
-type Task = HydratedDocument<InternalTask>;
+type Task = HydratedDocument<InternalTask, TaskMethods>;
 
 declare module "express" {
     interface Request {

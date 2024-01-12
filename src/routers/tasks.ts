@@ -1,64 +1,61 @@
-import express from "express";
-import { TaskApiResult, TasksApiResult, ApiResponse } from "../types.js";
-import {
-    Task,
-    getAllowedUpdates,
-} from "../models/tasks.js";
-import { getFullResourcePath, sendInternalError } from "./common.js";
-import { createTask, deleteTask, getAllTasks, getTask, updateTask } from "../repositories/tasks.js";
+import { Request, Response, Router } from "express";
+import { Task, getAllowedUpdates } from "../models/tasks.js";
+import { getFullResourcePath, sendInternalError } from "../utils/path.js";
+import { createTask, deleteTaskOfAuthor, getAllTasksOfAuthor, getTaskOfAuthor, updateTaskOfAuthor } from "../repositories/tasks.js";
+import { auth } from "../middleware/auth.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/tasks", async (req, res) => {
-    const task: Task = req.body;
-    const taskResult: TaskApiResult = await createTask(task);
-    if (taskResult.success && taskResult.task) {
-        res.status(201)
-            .setHeader(
-                "Location",
-                `${getFullResourcePath(req)}/${taskResult.task.id}`
-            )
-            .send(taskResult.task);
-    } else {
-        res.status(400).send(<ApiResponse>{
-            code: 400,
-            message: `Incorrect request(${taskResult.error?.message})`,
-        });
-    }
-});
-
-router.get("/tasks", async (req, res) => {
-    const tasksResult: TasksApiResult = await getAllTasks();
-    if (tasksResult.success) {
-        if (tasksResult.tasks) {
-            return res.status(200).send(tasksResult.tasks);
+router.post("/tasks", auth, async (req:Request, res:Response) => {
+    const task: Task = {
+        ...req.body,
+        authorId: req.user?.id,
+    };
+    const result = await createTask(task);
+    if (result.success) {
+        if (result.task) {
+            res.status(201)
+                .setHeader(
+                    "Location",
+                    `${getFullResourcePath(req)}/${result.task.id}`
+                )
+                .send(result.task);
+        } else {
+            res.status(400).send();
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to fetch all tasks`,
-        });
     } else {
-        sendInternalError(tasksResult, res);
+        sendInternalError(result, res);
     }
 });
 
-router.get("/tasks/:id", async (req, res) => {
+router.get("/tasks", auth, async (req: Request, res: Response) => {
+    const result = await getAllTasksOfAuthor(req.user?.id);
+    if (result.success) {
+        if (result.tasks) {
+            res.status(200).send(result.tasks);
+        } else {
+            res.status(404).send();
+        }
+    } else {
+        sendInternalError(result, res);
+    }
+});
+
+router.get("/tasks/:id", auth, async (req: Request, res: Response) => {
     const id: string = req.params.id;
-    const taskResult: TaskApiResult = await getTask(id);
-    if (taskResult.success) {
-        if (taskResult.task) {
-            return res.status(200).send(taskResult.task);
+    const result = await getTaskOfAuthor(id, req.user?.id);
+    if (result.success) {
+        if (result.task) {
+            res.status(200).send(result.task);
+        } else {
+            res.status(404).send();
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to find task with id ${id}`,
-        });
     } else {
-        sendInternalError(taskResult, res);
+        sendInternalError(result, res);
     }
 });
 
-router.patch("/tasks/:id", async (req, res) => {
+router.patch("/tasks/:id", auth, async (req: Request, res: Response) => {
     const id: string = req.params.id;
     const updates: Task = req.body;
 
@@ -68,39 +65,32 @@ router.patch("/tasks/:id", async (req, res) => {
         allowedUpdates.includes(field)
     );
     if (!isAllowedUpdate) {
-        return res.status(400).send(<ApiResponse>{
-            code: 400,
-            message: `Incorrect request(${JSON.stringify(updates)})`,
-        });
+        return res.status(400).send();
     }
 
-    const taskResult: TaskApiResult = await updateTask(id, updates);
-    if (taskResult.success) {
-        if (taskResult.task) {
-            return res.status(200).send(taskResult.task);
+    const result = await updateTaskOfAuthor(id, req.user?.id, updates);
+    if (result.success) {
+        if (result.task) {
+            res.status(200).send(result.task);
+        } else {
+            res.status(404).send();
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to find task with id ${id}`,
-        });
     } else {
-        sendInternalError(taskResult, res);
+        sendInternalError(result, res);
     }
 });
 
-router.delete("/tasks/:id", async (req, res) => {
+router.delete("/tasks/:id", auth, async (req:Request, res:Response) => {
     const id: string = req.params.id;
-    const taskResult: TaskApiResult = await deleteTask(id);
-    if (taskResult.success) {
-        if (taskResult.task) {
-            return res.status(204).send();
+    const result = await deleteTaskOfAuthor(id, req.user?.id);
+    if (result.success) {
+        if (result.task) {
+            res.status(204).send();
+        } else {
+            res.status(404).send();
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to find task with id ${id}`,
-        });
     } else {
-        sendInternalError(taskResult, res);
+        sendInternalError(result, res);
     }
 });
 

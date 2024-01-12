@@ -4,6 +4,7 @@ import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult } from "../types.js";
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";
+import { Task } from "./tasks.js";
 
 type User = {
     name: string;
@@ -15,7 +16,7 @@ type User = {
     }[]
 }
 
-type PublicUser = Pick<User, "name" | "email" | "age">;
+type PublicUser = Pick<User, "name" | "email" | "age"> & Pick<HydratedDocument<User>, "id"> & {tasks: Task[]};
 
 type UserMethods = {
     generateToken(): Promise<string>;
@@ -32,7 +33,7 @@ const userSchema = new Schema<
     UserMethods
 >({
     name: {
-        type: String,
+        type: Schema.Types.String,
         required: true,
         trim: true,
         validate: {
@@ -43,7 +44,7 @@ const userSchema = new Schema<
         },
     },
     age: {
-        type: Number,
+        type: Schema.Types.Number,
         required: false,
         default: 0,
         validate: {
@@ -54,7 +55,7 @@ const userSchema = new Schema<
         },
     },
     email: {
-        type: String,
+        type: Schema.Types.String,
         required: true,
         lowercase: true,
         trim: true,
@@ -67,7 +68,7 @@ const userSchema = new Schema<
         },
     },
     password: {
-        type: String,
+        type: Schema.Types.String,
         required: true,
         trim: true,
         minlength: 6,
@@ -82,11 +83,17 @@ const userSchema = new Schema<
     tokens: [
         {
             token: {
-                type: String,
+                type: Schema.Types.String,
                 required: true,
             },
         },
     ],
+});
+
+userSchema.virtual("tasks", {
+    ref: "Task",
+    localField: "_id",
+    foreignField: "authorId",
 });
 
 userSchema.method<HydratedDocument<User>>("generateToken", async function () { 
@@ -97,9 +104,9 @@ userSchema.method<HydratedDocument<User>>("generateToken", async function () {
     return token;
 })
 
-userSchema.method<HydratedDocument<User>>("toJSON", function ():PublicUser {
-    const {name, email, age} = this;
-    return {name, email, age}
+userSchema.method<HydratedDocument<User & {tasks: Task[]}>>("toJSON", function ():PublicUser {
+    const { name, email, age, id, tasks } = this;
+    return { id, name, email, age, tasks };
 })
 
 userSchema.static(
@@ -142,6 +149,7 @@ const UserModel = model<User, IUserModel>(
 );
 
 export {
+    PublicUser,
     User,
     UserModel,
     UserMethods
