@@ -1,10 +1,9 @@
+import { HydratedDocument } from "mongoose";
 import { Task as InternalTask } from "./models/tasks.js";
 import { User as InternalUser, UserMethods } from "./models/users.js";
 
-type DocumentId = {id:string};
-
-type User = InternalUser & UserMethods & DocumentId;
-type Task = InternalTask & DocumentId;
+type User = HydratedDocument<InternalUser, UserMethods>;
+type Task = HydratedDocument<InternalTask>;
 
 declare module "express" {
     interface Request {
@@ -24,14 +23,14 @@ type ApiResponse = {
 };
 
 type UserApiResult = {
-    user?: User;
+    user?: User | null;
 } & ApiRequestResult;
 type UsersApiResult = {
-    users?: User[];
+    users?: User[] | null;
 } & ApiRequestResult;
 
-type TaskApiResult = { task?: Task } & ApiRequestResult;
-type TasksApiResult = { tasks?: Task[] } & ApiRequestResult;
+type TaskApiResult = { task?: Task | null } & ApiRequestResult;
+type TasksApiResult = { tasks?: Task[] | null } & ApiRequestResult;
 
 export {
     ApiRequestResult,

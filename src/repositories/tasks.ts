@@ -4,9 +4,9 @@ import { TaskApiResult, TasksApiResult } from "../types.js";
 async function createTask(task: Task): Promise<TaskApiResult> {
     try {
         const createdTask = await new TaskModel(task).save();
-        return <TaskApiResult>{ success: true, task: createdTask };
+        return { success: true, task: createdTask };
     } catch (e) {
-        return <TaskApiResult>{
+        return {
             success: false,
             error: Error("error occurred while saving task", { cause: e }),
         };
@@ -15,10 +15,10 @@ async function createTask(task: Task): Promise<TaskApiResult> {
 
 async function getTask(id: string): Promise<TaskApiResult> {
     try {
-        const task = await TaskModel.findById<Task>(id);
-        return <TaskApiResult>{ success: true, task };
+        const task = await TaskModel.findById(id);
+        return { success: true, task };
     } catch (e: any) {
-        return <TaskApiResult>{
+        return {
             success: false,
             error: Error(`could not find task with id ${id}`, { cause: e }),
         };
@@ -27,10 +27,10 @@ async function getTask(id: string): Promise<TaskApiResult> {
 
 async function getAllTasks(): Promise<TasksApiResult> {
     try {
-        const tasks = await TaskModel.find<Task>();
-        return <TasksApiResult>{ success: true, tasks };
+        const tasks = await TaskModel.find();
+        return { success: true, tasks };
     } catch (e) {
-        return <TasksApiResult>{
+        return {
             success: false,
             error: Error("could not fetch all tasks", { cause: e }),
         };
@@ -40,9 +40,9 @@ async function getAllTasks(): Promise<TasksApiResult> {
 async function deleteTask(id: string): Promise<TaskApiResult> {
     try {
         const task = await TaskModel.findByIdAndDelete(id);
-        return <TaskApiResult>{ success: true, task };
+        return { success: true, task };
     } catch (e) {
-        return <TaskApiResult>{
+        return {
             success: false,
             error: Error(`could not find task with id ${id}`, { cause: e }),
         };
@@ -57,9 +57,9 @@ async function updateTask(id: string, updates: Task): Promise<TaskApiResult> {
         }
         Object.assign(task, updates);
         await task.save();
-        return <TaskApiResult>{ success: true, task };
+        return { success: true, task };
     } catch (e) {
-        return <TaskApiResult>{
+        return {
             success: false,
             error: Error(`could not update task with id ${id}`, { cause: e }),
         };

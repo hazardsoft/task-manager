@@ -117,9 +117,9 @@ userSchema.static(
             if (!isMatch) {
                 return { success: true };
             }
-            return <UserApiResult>{ success: true, user };
+            return { success: true, user };
         } catch (e) {
-            return <UserApiResult>{
+            return {
                 success: false,
                 error: Error(`can not login user`, { cause: e }),
             };
@@ -141,22 +141,7 @@ const UserModel = model<User, IUserModel>(
     config.usersCollectionName
 );
 
-async function loginUser(
-    email: string,
-    password: string
-): Promise<UserApiResult> {
-    return UserModel.findByCredentials(email, password);
-}
-
-function getAllowedUpdates(): string[] {
-    return Object.keys(UserModel.schema.paths).filter(
-        (path) => !path.startsWith("_")
-    );
-}
-
 export {
-    getAllowedUpdates,
-    loginUser,
     User,
     UserModel,
     UserMethods

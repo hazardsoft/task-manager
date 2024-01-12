@@ -1,13 +1,9 @@
 import express, { Request, Response } from "express";
-import {
-    getAllowedUpdates,
-    loginUser,
-    User,
-} from "../models/users.js";
-import { UserApiResult, ApiResponse, UsersApiResult } from "../types.js";
+import { User } from "../models/users.js";
+import { ApiResponse } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../routers/common.js";
 import { auth } from "../middleware/auth.js";
-import { createUser, deleteUser, getAllUsers, getUser, updateUser } from "../repositories/users.js";
+import { createUser, deleteUser, getAllowedUpdates, getUser, loginUser, updateUser } from "../repositories/users.js";
 
 const router = express.Router();
 
@@ -15,10 +11,10 @@ router.post("/users/login", async (req, res) => {
     const email: string = req.body.email;
     const password: string = req.body.password;
     if (email && password) {
-        const userResult: UserApiResult = await loginUser(email, password);
-        if (userResult.success && userResult.user) {
-            const token: string = await userResult.user.generateToken();
-            res.status(200).send({ user: userResult.user, token });
+        const result = await loginUser(email, password);
+        if (result.success && result.user) {
+            const token: string = await result.user.generateToken();
+            res.status(200).send({ user: result.user, token });
         } else {
             res.status(400).send(<ApiResponse>{
                 code: 400,
@@ -37,8 +33,8 @@ router.post("/users/logout", auth, async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const tokens = req.user!.tokens;
     const updatedTokens = tokens.filter(token => token.token !== req.token);  
-    const userResult: UserApiResult = await updateUser(userId, {tokens: updatedTokens});
-    if (userResult.success) {
+    const result = await updateUser(userId, {tokens: updatedTokens});
+    if (result.success) {
         res.status(200).send();
     } else {
         res.status(500).send(<ApiResponse>{
@@ -50,8 +46,8 @@ router.post("/users/logout", auth, async (req: Request, res: Response) => {
 
 router.post("/users/logoutAll", auth, async (req: Request, res: Response) => { 
     const userId = req.user!.id;
-    const userResult: UserApiResult = await updateUser(userId, { tokens: [] });
-    if (userResult.success) {
+    const result = await updateUser(userId, { tokens: [] });
+    if (result.success) {
         res.status(200).send();
     } else {
         res.status(500).send(<ApiResponse>{
@@ -63,34 +59,20 @@ router.post("/users/logoutAll", auth, async (req: Request, res: Response) => {
 
 router.post("/users", async (req, res) => {
     const user: User = req.body;
-    const userResult: UserApiResult = await createUser(user);
-    if (userResult.success && userResult.user) {
-        const token: string = await userResult.user.generateToken();
+    const result = await createUser(user);
+    if (result.success && result.user) {
+        const token: string = await result.user.generateToken();
         res.status(201)
             .setHeader(
                 "Location",
-                `${getFullResourcePath(req)}/${userResult.user.id}`
+                `${getFullResourcePath(req)}/${result.user.id}`
             )
-            .send({ user: userResult.user, token });
+            .send({ user: result.user, token });
     } else {
         res.status(400).send(<ApiResponse>{
             code: 400,
-            message: `Incorrect request(${userResult.error?.message})`,
+            message: `Incorrect request(${result.error?.message})`,
         });
-    }
-});
-
-router.get("/users", async (req, res) => {
-    const usersResult: UsersApiResult = await getAllUsers();
-    if (usersResult.success) {
-        res.status(200).send(usersResult.users);
-    } else if (!usersResult.error) {
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to fetch all users`,
-        });
-    } else {
-        sendInternalError(usersResult, res);
     }
 });
 
@@ -100,22 +82,22 @@ router.get("/users/me", auth, (req:Request, res:Response) => {
 
 router.get("/users/:id", async (req, res) => {
     const id: string = req.params.id;
-    const userResult: UserApiResult = await getUser(id);
-    if (userResult.success) {
-        if (userResult.user) {
-            return res.status(200).send(userResult.user);
+    const result = await getUser(id);
+    if (result.success) {
+        if (result.user) {
+            return res.status(200).send(result.user);
         }
         res.status(404).send(<ApiResponse>{
             code: 404,
             message: `Unable to find user with id ${id}`,
         });
     } else {
-        sendInternalError(userResult, res);
+        sendInternalError(result, res);
     }
 });
 
-router.patch("/users/:id", async (req, res) => {
-    const id: string = req.params.id;
+router.patch("/users/me", auth, async (req:Request, res:Response) => {
+    const id: string = req.user?.id;
     const updates: User = req.body;
 
     const updateFields: string[] = Object.keys(updates);
@@ -130,33 +112,35 @@ router.patch("/users/:id", async (req, res) => {
         });
     }
 
-    const userResult: UserApiResult = await updateUser(id, updates);
-    if (userResult.success) {
-        if (userResult.user) {
-            return res.status(200).send(userResult.user);
+    const result = await updateUser(id, updates);
+    if (result.success) {
+        if (result.user) {
+            res.status(200).send(result.user);
+        } else {
+            res.status(404).send(<ApiResponse>{
+                code: 404,
+                message: `Unable to find user with id ${id}`,
+            });
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to find user with id ${id}`,
-        });
     } else {
-        sendInternalError(userResult, res);
+        sendInternalError(result, res);
     }
 });
 
-router.delete("/users/:id", async (req, res) => {
-    const id: string = req.params.id;
-    const userResult: UserApiResult = await deleteUser(id);
-    if (userResult.success) {
-        if (userResult.user) {
-            return res.status(204).send();
+router.delete("/users/me", auth, async (req: Request, res: Response) => {
+    const userId = req.user!.id;
+    const result = await deleteUser(userId);
+    if (result.success) {
+        if (result.user) {
+            res.status(204).send();
+        } else {
+            res.status(404).send(<ApiResponse>{
+                code: 404,
+                message: `Unable to find user with id ${userId}`,
+            });
         }
-        res.status(404).send(<ApiResponse>{
-            code: 404,
-            message: `Unable to find user with id ${id}`,
-        });
     } else {
-        sendInternalError(userResult, res);
+        sendInternalError(result, res);
     }
 });
 

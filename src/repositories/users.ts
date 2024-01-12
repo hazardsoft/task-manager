@@ -4,9 +4,9 @@ import { UserApiResult, UsersApiResult } from "../types.js";
 async function createUser(user: User): Promise<UserApiResult> {
     try {
         const createdUser = await new UserModel(user).save();
-        return <UserApiResult>{ success: true, user: createdUser };
+        return { success: true, user: createdUser };
     } catch (e: any) {
-        return <UserApiResult>{
+        return {
             success: false,
             error: Error("error occurred while saving user", { cause: e }),
         };
@@ -16,9 +16,9 @@ async function createUser(user: User): Promise<UserApiResult> {
 async function getUser(id: string): Promise<UserApiResult> {
     try {
         const user = await UserModel.findById(id);
-        return <UserApiResult>{ success: true, user };
+        return { success: true, user };
     } catch (e: any) {
-        return <UserApiResult>{
+        return {
             success: false,
             error: Error(`could not find user with id ${id}`, { cause: e }),
         };
@@ -27,13 +27,13 @@ async function getUser(id: string): Promise<UserApiResult> {
 
 async function getUserByToken(id: string, token: string): Promise<UserApiResult> {
     try {
-        const user = await UserModel.findOne<User>({
+        const user = await UserModel.findOne({
             _id: id,
             "tokens.token": token,
         });
-        return <UserApiResult>{ success: true, user };
+        return { success: true, user };
     } catch (e: any) {
-        return <UserApiResult>{
+        return {
             success: false,
             error: Error(`could not find user with id ${id}`, { cause: e }),
         };
@@ -42,10 +42,10 @@ async function getUserByToken(id: string, token: string): Promise<UserApiResult>
 
 async function getAllUsers(): Promise<UsersApiResult> {
     try {
-        const users = await UserModel.find<User>();
-        return <UsersApiResult>{ success: true, users };
+        const users = await UserModel.find();
+        return { success: true, users };
     } catch (e) {
-        return <UsersApiResult>{
+        return {
             success: false,
             error: Error("could not fetch all users", { cause: e }),
         };
@@ -54,10 +54,10 @@ async function getAllUsers(): Promise<UsersApiResult> {
 
 async function deleteUser(id: string): Promise<UserApiResult> {
     try {
-        const user  = await UserModel.findByIdAndDelete<User>(id);
-        return <UserApiResult>{ success: true, user };
+        const user  = await UserModel.findByIdAndDelete(id);
+        return { success: true, user };
     } catch (e) {
-        return <UserApiResult>{
+        return {
             success: false,
             error: Error(`could not find user with id ${id}`, { cause: e }),
         };
@@ -68,17 +68,30 @@ async function updateUser(id: string, updates: Partial<User>): Promise<UserApiRe
     try {
         const user = await UserModel.findById(id);
         if (!user) {
-            return <UserApiResult>{ success: true };
+            return { success: true };
         }
         Object.assign(user, updates);
         await user.save();
-        return <UserApiResult>{ success: true, user };
+        return { success: true, user };
     } catch (e) {
-        return <UserApiResult>{
+        return {
             success: false,
             error: Error(`could not update user with id ${id}`, { cause: e }),
         };
     }
+}
+
+async function loginUser(
+    email: string,
+    password: string
+): Promise<UserApiResult> {
+    return UserModel.findByCredentials(email, password);
+}
+
+function getAllowedUpdates(): string[] {
+    return Object.keys(UserModel.schema.paths).filter(
+        (path) => !path.startsWith("_")
+    );
 }
 
 export {
@@ -87,5 +100,7 @@ export {
     getUser,
     getUserByToken,
     deleteUser,
-    updateUser
+    updateUser,
+    loginUser,
+    getAllowedUpdates
 };

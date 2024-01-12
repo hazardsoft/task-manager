@@ -10,9 +10,9 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
         if (token) {
             const payload = verifyToken(token);
             if (payload) {
-                const userResult = await getUserByToken(payload.id, token)
-                if (userResult.success && userResult.user) {
-                    req.user = userResult.user;
+                const result = await getUserByToken(payload.id, token)
+                if (result.success && result.user) {
+                    req.user = result.user;
                     req.token = token;
                     next();
                 } else {
