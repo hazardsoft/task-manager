@@ -54,7 +54,8 @@ async function getAllUsers(): Promise<UsersApiResult> {
 
 async function deleteUser(id: string): Promise<UserApiResult> {
     try {
-        const user  = await UserModel.findByIdAndDelete(id);
+        const user = await UserModel.findById(id);
+        await user?.deleteOne();
         return { success: true, user };
     } catch (e) {
         return {

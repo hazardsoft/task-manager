@@ -4,7 +4,7 @@ import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult } from "../types.js";
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";
-import { Task } from "./tasks.js";
+import { Task, TaskModel } from "./tasks.js";
 
 type User = {
     name: string;
@@ -140,6 +140,12 @@ userSchema.pre("save", async function () {
     if (isPassModified) {
         user.password = await bcrypt.hash(user.password, 8);
     }
+});
+
+userSchema.post<HydratedDocument<User>>("deleteOne", {document: true, query: false}, async function () { 
+    const user = this;
+    const deleteTasks = await TaskModel.deleteMany({ authorId: user.id }); 
+    console.log(deleteTasks);
 });
 
 const UserModel = model<User, IUserModel>(
