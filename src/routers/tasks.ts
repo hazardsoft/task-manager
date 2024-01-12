@@ -1,7 +1,7 @@
 import express from "express";
 import { TaskApiResult, TasksApiResult, ApiResponse } from "../types.js";
 import {
-    ITask,
+    Task,
     getAllowedUpdates,
 } from "../models/tasks.js";
 import { getFullResourcePath, sendInternalError } from "./common.js";
@@ -10,13 +10,13 @@ import { createTask, deleteTask, getAllTasks, getTask, updateTask } from "../rep
 const router = express.Router();
 
 router.post("/tasks", async (req, res) => {
-    const task: ITask = req.body;
+    const task: Task = req.body;
     const taskResult: TaskApiResult = await createTask(task);
     if (taskResult.success && taskResult.task) {
         res.status(201)
             .setHeader(
                 "Location",
-                `${getFullResourcePath(req)}/${taskResult.task._id}`
+                `${getFullResourcePath(req)}/${taskResult.task.id}`
             )
             .send(taskResult.task);
     } else {
@@ -60,7 +60,7 @@ router.get("/tasks/:id", async (req, res) => {
 
 router.patch("/tasks/:id", async (req, res) => {
     const id: string = req.params.id;
-    const updates: ITask = req.body;
+    const updates: Task = req.body;
 
     const updateFields: string[] = Object.keys(updates);
     const allowedUpdates: string[] = getAllowedUpdates();

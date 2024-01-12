@@ -1,7 +1,7 @@
-import { IUser, UserModel } from "../models/users.js";
+import { User, UserModel } from "../models/users.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
 
-async function createUser(user: IUser): Promise<UserApiResult> {
+async function createUser(user: User): Promise<UserApiResult> {
     try {
         const createdUser = await new UserModel(user).save();
         return <UserApiResult>{ success: true, user: createdUser };
@@ -27,7 +27,7 @@ async function getUser(id: string): Promise<UserApiResult> {
 
 async function getUserByToken(id: string, token: string): Promise<UserApiResult> {
     try {
-        const user = await UserModel.findOne<IUser>({
+        const user = await UserModel.findOne<User>({
             _id: id,
             "tokens.token": token,
         });
@@ -42,7 +42,7 @@ async function getUserByToken(id: string, token: string): Promise<UserApiResult>
 
 async function getAllUsers(): Promise<UsersApiResult> {
     try {
-        const users = await UserModel.find<IUser>();
+        const users = await UserModel.find<User>();
         return <UsersApiResult>{ success: true, users };
     } catch (e) {
         return <UsersApiResult>{
@@ -54,7 +54,7 @@ async function getAllUsers(): Promise<UsersApiResult> {
 
 async function deleteUser(id: string): Promise<UserApiResult> {
     try {
-        const user  = await UserModel.findByIdAndDelete<IUser>(id);
+        const user  = await UserModel.findByIdAndDelete<User>(id);
         return <UserApiResult>{ success: true, user };
     } catch (e) {
         return <UserApiResult>{
@@ -64,7 +64,7 @@ async function deleteUser(id: string): Promise<UserApiResult> {
     }
 }
 
-async function updateUser(id: string, updates: IUser): Promise<UserApiResult> {
+async function updateUser(id: string, updates: Partial<User>): Promise<UserApiResult> {
     try {
         const user = await UserModel.findById(id);
         if (!user) {

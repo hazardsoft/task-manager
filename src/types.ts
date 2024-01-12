@@ -1,13 +1,15 @@
-import { Types } from "mongoose";
-import { ITask } from "./models/tasks.js";
-import { IUser, IUserMethods } from "./models/users.js";
+import { Task as InternalTask } from "./models/tasks.js";
+import { User as InternalUser, UserMethods } from "./models/users.js";
 
-type User = IUser & IUserMethods & { _id: Types.ObjectId };
-type Task = ITask & {_id:Types.ObjectId};
+type DocumentId = {id:string};
+
+type User = InternalUser & UserMethods & DocumentId;
+type Task = InternalTask & DocumentId;
 
 declare module "express" {
     interface Request {
         user?: User;
+        token?: string;
     }
 }
 

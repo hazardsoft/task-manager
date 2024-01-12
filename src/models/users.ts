@@ -5,7 +5,7 @@ import { UserApiResult } from "../types.js";
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";
 
-interface IUser {
+type User = {
     name: string;
     email: string;
     password: string;
@@ -15,18 +15,21 @@ interface IUser {
     }[]
 }
 
-interface IUserMethods {
+type PublicUser = Pick<User, "name" | "email" | "age">;
+
+type UserMethods = {
     generateToken(): Promise<string>;
+    toJSON(): PublicUser;
 }
 
-interface IUserModel extends Model<IUser, {}, IUserMethods>  {
+interface IUserModel extends Model<User, {}, UserMethods>  {
     findByCredentials: (email: string, password: string) => Promise<UserApiResult>;
 }
 
 const userSchema = new Schema<
-    IUser,
+    User,
     IUserModel,
-    IUserMethods
+    UserMethods
 >({
     name: {
         type: String,
@@ -86,12 +89,17 @@ const userSchema = new Schema<
     ],
 });
 
-userSchema.method<HydratedDocument<IUser>>("generateToken", async function () { 
+userSchema.method<HydratedDocument<User>>("generateToken", async function () { 
     const user = this;
     const token = signToken(user.id);
     user.tokens = user.tokens.concat({ token });
     await user.save();
     return token;
+})
+
+userSchema.method<HydratedDocument<User>>("toJSON", function ():PublicUser {
+    const {name, email, age} = this;
+    return {name, email, age}
 })
 
 userSchema.static(
@@ -127,7 +135,7 @@ userSchema.pre("save", async function () {
     }
 });
 
-const UserModel = model<IUser, IUserModel>(
+const UserModel = model<User, IUserModel>(
     "User",
     userSchema,
     config.usersCollectionName
@@ -149,7 +157,7 @@ function getAllowedUpdates(): string[] {
 export {
     getAllowedUpdates,
     loginUser,
-    IUser,
+    User,
     UserModel,
-    IUserMethods
+    UserMethods
 };

@@ -1,12 +1,12 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import { config } from "../config.js";
 
-interface ITask {
+type Task = {
     description: string;
     completed?: boolean;
 };
 
-const taskSchema = new Schema<ITask>({
+const taskSchema = new Schema<Task>({
     description: {
         type: String,
         required: [true, "Task description is required!"],
@@ -26,7 +26,7 @@ const taskSchema = new Schema<ITask>({
     },
 });
 
-const TaskModel = model<ITask>("Task", taskSchema, config.tasksCollectionName);
+const TaskModel = model<Task>("Task", taskSchema, config.tasksCollectionName);
 
 function getAllowedUpdates(): string[] {
     return Object.keys(TaskModel.schema.paths).filter(
@@ -36,6 +36,6 @@ function getAllowedUpdates(): string[] {
 
 export {
     getAllowedUpdates,
-    ITask,
+    Task,
     TaskModel
 };

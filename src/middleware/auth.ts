@@ -13,6 +13,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
                 const userResult = await getUserByToken(payload.id, token)
                 if (userResult.success && userResult.user) {
                     req.user = userResult.user;
+                    req.token = token;
                     next();
                 } else {
                     throw new Error(`user id ${payload.id} does not exist!`);

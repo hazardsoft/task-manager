@@ -1,7 +1,7 @@
-import { ITask, TaskModel } from "../models/tasks.js";
+import { Task, TaskModel } from "../models/tasks.js";
 import { TaskApiResult, TasksApiResult } from "../types.js";
 
-async function createTask(task: ITask): Promise<TaskApiResult> {
+async function createTask(task: Task): Promise<TaskApiResult> {
     try {
         const createdTask = await new TaskModel(task).save();
         return <TaskApiResult>{ success: true, task: createdTask };
@@ -15,7 +15,7 @@ async function createTask(task: ITask): Promise<TaskApiResult> {
 
 async function getTask(id: string): Promise<TaskApiResult> {
     try {
-        const task = await TaskModel.findById<ITask>(id);
+        const task = await TaskModel.findById<Task>(id);
         return <TaskApiResult>{ success: true, task };
     } catch (e: any) {
         return <TaskApiResult>{
@@ -27,7 +27,7 @@ async function getTask(id: string): Promise<TaskApiResult> {
 
 async function getAllTasks(): Promise<TasksApiResult> {
     try {
-        const tasks = await TaskModel.find<ITask>();
+        const tasks = await TaskModel.find<Task>();
         return <TasksApiResult>{ success: true, tasks };
     } catch (e) {
         return <TasksApiResult>{
@@ -49,7 +49,7 @@ async function deleteTask(id: string): Promise<TaskApiResult> {
     }
 }
 
-async function updateTask(id: string, updates: ITask): Promise<TaskApiResult> {
+async function updateTask(id: string, updates: Task): Promise<TaskApiResult> {
     try {
         const task = await TaskModel.findById(id);
         if (!task) {
@@ -57,7 +57,7 @@ async function updateTask(id: string, updates: ITask): Promise<TaskApiResult> {
         }
         Object.assign(task, updates);
         await task.save();
-        return { success: true, task };
+        return <TaskApiResult>{ success: true, task };
     } catch (e) {
         return <TaskApiResult>{
             success: false,
