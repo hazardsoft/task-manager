@@ -148,25 +148,11 @@ router.delete("/users/me", auth, async (req: Request, res: Response) => {
     }
 });
 
-router.post("/users/me/avatar", auth, (req: Request, res: Response) => { 
-    uploadAvatar(req, res, (e) => {
-        if (e instanceof MulterError) {
-            res.status(400).send({
-                message: "Avatar upload failed",
-                error: `field: ${e.field}, error: ${e.message}`,
-            });
-        } else if (e) {
-            res.status(400).send({
-                message: "Avatar upload failed",
-                error: JSON.stringify(e),
-            });
-        } else {
-            res.status(200).send({
-                message: "Avatar uploaded successfully",
-                path: req.file?.path,
-            })
-        }
-    });
+router.post("/users/me/avatar", auth, uploadAvatar, (req: Request, res: Response) => { 
+    res.status(200).send({
+        message: "Avatar uploaded successfully",
+        path: req.file?.path,
+    })
 });
 
 export { router };

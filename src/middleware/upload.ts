@@ -1,5 +1,5 @@
-import { Request } from "express";
-import multer from "multer";
+import { NextFunction, Request, Response } from "express";
+import multer, { MulterError } from "multer";
 
 const storage = multer.diskStorage({
     destination: "uploads/avatars/",
@@ -25,6 +25,27 @@ const upload = multer({
     }
 });
 
-const uploadAvatar = upload.single("avatar");
+const uploadAvatar = (req: Request, res: Response, next:NextFunction) => {
+    upload.single("avatar")(req, res, (e) => {
+        if (e instanceof MulterError) {
+            res.status(400).send({
+                message: "Avatar upload failed",
+                error: `field: ${e.field}, error: ${e.message}`,
+            });
+        } else if (e instanceof Error) {
+            res.status(400).send({
+                message: "Avatar upload failed",
+                error: e.message,
+            });
+        } else if (e) {
+            res.status(400).send({
+                message: "Avatar upload failed",
+                error: JSON.stringify(e),
+            });
+        } else {
+            next();
+        }
+    });
+}
 
 export { uploadAvatar };
