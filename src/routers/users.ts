@@ -1,10 +1,11 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { User } from "../models/users.js";
 import { ApiResponse } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../utils/path.js";
 import { auth } from "../middleware/auth.js";
 import { createUser, deleteUser, getAllowedUpdates, getUser, loginUser, updateUser } from "../repositories/users.js";
 import { uploadAvatar } from "../middleware/upload.js";
+import { MulterError } from "multer";
 
 const router = express.Router();
 
@@ -147,11 +148,25 @@ router.delete("/users/me", auth, async (req: Request, res: Response) => {
     }
 });
 
-router.post("/users/me/avatar", auth, uploadAvatar, async (req: Request, res: Response) => { 
-    res.status(200).send({
-        message: "Avatar uploaded successfully",
-        path: req.file?.path,
-    })
+router.post("/users/me/avatar", auth, (req: Request, res: Response) => { 
+    uploadAvatar(req, res, (e) => {
+        if (e instanceof MulterError) {
+            res.status(400).send({
+                message: "Avatar upload failed",
+                error: `field: ${e.field}, error: ${e.message}`,
+            });
+        } else if (e) {
+            res.status(400).send({
+                message: "Avatar upload failed",
+                error: JSON.stringify(e),
+            });
+        } else {
+            res.status(200).send({
+                message: "Avatar uploaded successfully",
+                path: req.file?.path,
+            })
+        }
+    });
 });
 
 export { router };

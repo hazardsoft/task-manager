@@ -8,7 +8,22 @@ const storage = multer.diskStorage({
         cb(null, fileName);
     }
 })
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: Math.pow(2, 20) * 0.5, // 0.5MiB
+    },
+    fileFilter(
+        req: Request,
+        file: Express.Multer.File,
+        callback
+    ) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return callback(Error("Only image files are allowed!"));
+        }
+        callback(null, true);
+    }
+});
 
 const uploadAvatar = upload.single("avatar");
 
