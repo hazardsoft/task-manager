@@ -9,6 +9,7 @@ declare module "express" {
     interface Request {
         user?: User;
         token?: string;
+        file?: Express.Multer.File;
     }
 }
 
