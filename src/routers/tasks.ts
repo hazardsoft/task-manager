@@ -28,10 +28,24 @@ router.post("/tasks", auth, async (req:Request, res:Response) => {
     }
 });
 
+// GET /tasks?completed=true
+// GET /tasks?limit=10&skip=0
+// GET /tasks?sortBy=createdAt:desc
 router.get("/tasks", auth, async (req: Request, res: Response) => {
-    const match = req.query.completed ? { completed: req.query.completed === "true" } : {};
+    const match: { completed?: boolean } = req.query.completed ? { completed: req.query.completed === "true" } : {};
+    const options: { limit?:number, skip?:number, sort?: Record<string, -1 | 1> } = {};
+    if (req.query.limit) {
+        options.limit = parseInt(req.query.limit as string);
+    }
+    if (req.query.skip) {
+        options.skip = parseInt(req.query.skip as string);
+    }
+    if (req.query.sortBy) {
+        const parts = (req.query.sortBy as string).split(":");
+        options.sort = { [parts[0]]: parts[1] === "desc" ? -1 : 1 };
+    }
 
-    const result = await getAllTasksOfAuthor(req.user?.id, match);
+    const result = await getAllTasksOfAuthor(req.user?.id, match, options);
     if (result.success) {
         if (result.tasks) {
             res.status(200).send(result.tasks);
