@@ -17,28 +17,31 @@ interface ITaskModel extends Model<Task, {}, TaskMethods> {}
 type PublicTask = Pick<Task, "description" | "completed" | "authorId"> & Pick<HydratedDocument<Task>, "id"> & { author: PublicUser };
 
 const taskSchema = new Schema<Task, ITaskModel, TaskMethods>({
-    description: {
-        type: Schema.Types.String,
-        required: [true, "Task description is required!"],
-        trim: true,
-        validate: {
-            validator: (value: string) => {
-                return value.length > 1;
+        description: {
+            type: Schema.Types.String,
+            required: [true, "Task description is required!"],
+            trim: true,
+            validate: {
+                validator: (value: string) => {
+                    return value.length > 1;
+                },
+                message: (props) =>
+                    `"${props.value}" should be greater than 1 symbol!`,
             },
-            message: (props) =>
-                `"${props.value}" should be greater than 1 symbol!`,
         },
+        completed: {
+            type: Schema.Types.Boolean,
+            required: false,
+            default: false,
+        },
+        authorId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+        }
     },
-    completed: {
-        type: Schema.Types.Boolean,
-        required: false,
-        default: false,
-    },
-    authorId: {
-        type: Schema.Types.ObjectId,
-        required: true,
-    }
-});
+    {
+        timestamps: true
+    });
 
 taskSchema.virtual("author", {
     ref: "User",
