@@ -13,7 +13,8 @@ type User = {
     age?: number;
     tokens: {
         token: string;
-    }[]
+    }[],
+    tasks?: Task[];
 }
 
 type PublicUser = Pick<User, "name" | "email" | "age"> & Pick<HydratedDocument<User>, "id"> & {tasks: Task[]};

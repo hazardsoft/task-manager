@@ -29,7 +29,9 @@ router.post("/tasks", auth, async (req:Request, res:Response) => {
 });
 
 router.get("/tasks", auth, async (req: Request, res: Response) => {
-    const result = await getAllTasksOfAuthor(req.user?.id);
+    const match = req.query.completed ? { completed: req.query.completed === "true" } : {};
+
+    const result = await getAllTasksOfAuthor(req.user?.id, match);
     if (result.success) {
         if (result.tasks) {
             res.status(200).send(result.tasks);

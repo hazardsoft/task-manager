@@ -49,9 +49,10 @@ async function getAllTasks(): Promise<TasksApiResult> {
     }
 }
 
-async function getAllTasksOfAuthor(authorId:string): Promise<TasksApiResult> {
+async function getAllTasksOfAuthor(authorId:string, match: Record<string, unknown> = {}): Promise<TasksApiResult> {
     try {
-        const tasks = await TaskModel.find({authorId});
+        const filter = { authorId, ...match };
+        const tasks = await TaskModel.find(filter);
         return { success: true, tasks };
     } catch (e) {
         return {
