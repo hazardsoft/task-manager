@@ -6,6 +6,7 @@ import { auth } from "../middleware/auth.js";
 import { createUser, deleteUser, getAllowedUpdates, getUser, loginUser, updateUser } from "../repositories/users.js";
 import { uploadAvatar } from "../middleware/upload.js";
 import { MulterError } from "multer";
+import { resize } from "../middleware/image.js";
 
 const router = express.Router();
 
@@ -148,8 +149,8 @@ router.delete("/users/me", auth, async (req: Request, res: Response) => {
     }
 });
 
-router.post("/users/me/avatar", auth, uploadAvatar, async (req: Request, res: Response) => { 
-    req.user!.avatar = req.file!.buffer;
+router.post("/users/me/avatar", auth, uploadAvatar, resize, async (req: Request, res: Response) => { 
+    req.user!.avatar = req.avatar;
     await req.user!.save();
 
     res.status(200).send({
@@ -187,7 +188,7 @@ router.get("/users/:id/avatar", async (req, res) => {
     const result = await getUser(id);
     if (result.success) {
         if (result.user?.avatar) {
-            res.set("Content-Type", "image/jpg");
+            res.set("Content-Type", "image/png");
             res.status(200).send(result.user.avatar);
         } else {
             res.status(404).send(<ApiResponse>{

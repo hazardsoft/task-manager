@@ -10,6 +10,7 @@ declare module "express" {
         user?: User;
         token?: string;
         file?: Express.Multer.File;
+        avatar?: Buffer;
     }
 }
 
