@@ -182,4 +182,22 @@ router.delete("/users/me/avatar", auth, async (req: Request, res: Response) => {
     res.status(204).send();
 })
 
+router.get("/users/:id/avatar", async (req, res) => { 
+    const id = req.params.id;
+    const result = await getUser(id);
+    if (result.success) {
+        if (result.user?.avatar) {
+            res.set("Content-Type", "image/jpg");
+            res.status(200).send(result.user.avatar);
+        } else {
+            res.status(404).send(<ApiResponse>{
+                code: 404,
+                message: `Unable to find user with id ${id}`,
+            });
+        }
+    } else {
+        sendInternalError(result, res);
+    } 
+})
+
 export { router };
