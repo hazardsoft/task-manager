@@ -25,27 +25,6 @@ const upload = multer({
     }
 });
 
-const uploadAvatar = (req: Request, res: Response, next:NextFunction) => {
-    upload.single("avatar")(req, res, (e) => {
-        if (e instanceof MulterError) {
-            res.status(400).send({
-                message: "Avatar upload failed",
-                error: `field: ${e.field}, error: ${e.message}`,
-            });
-        } else if (e instanceof Error) {
-            res.status(400).send({
-                message: "Avatar upload failed",
-                error: e.message,
-            });
-        } else if (e) {
-            res.status(400).send({
-                message: "Avatar upload failed",
-                error: JSON.stringify(e),
-            });
-        } else {
-            next();
-        }
-    });
-}
+const uploadAvatar = upload.single("avatar");
 
 export { uploadAvatar };

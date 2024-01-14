@@ -153,6 +153,23 @@ router.post("/users/me/avatar", auth, uploadAvatar, (req: Request, res: Response
         message: "Avatar uploaded successfully",
         path: req.file?.path,
     })
+}, (e: any, _req:Request, res:Response, _next:NextFunction) => {
+    if (e instanceof MulterError) {
+        res.status(400).send({
+            message: "Avatar upload failed",
+            error: `field: ${e.field}, error: ${e.message}`,
+        });
+    } else if (e instanceof Error) {
+        res.status(400).send({
+            message: "Avatar upload failed",
+            error: e.message,
+        });
+    } else if (e) {
+        res.status(400).send({
+            message: "Avatar upload failed",
+            error: JSON.stringify(e),
+        });
+    }
 });
 
 export { router };
