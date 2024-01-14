@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import multer, { MulterError } from "multer";
+import { Request } from "express";
+import multer from "multer";
 
 const storage = multer.diskStorage({
     destination: "uploads/avatars/",
@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
     }
 })
 const upload = multer({
-    storage,
+    // storage,
     limits: {
         fileSize: Math.pow(2, 20) * 0.5, // 0.5MiB
     },

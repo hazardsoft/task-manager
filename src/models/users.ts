@@ -14,6 +14,7 @@ type User = {
     tokens: {
         token: string;
     }[],
+    avatar?: Buffer;
     tasks?: Task[];
 }
 
@@ -89,6 +90,10 @@ const userSchema = new Schema<
             },
         },
     ],
+    avatar: {
+        type: Buffer,
+        required: false,
+    }
 }, {
     timestamps: true,
 });

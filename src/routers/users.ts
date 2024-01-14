@@ -148,7 +148,10 @@ router.delete("/users/me", auth, async (req: Request, res: Response) => {
     }
 });
 
-router.post("/users/me/avatar", auth, uploadAvatar, (req: Request, res: Response) => { 
+router.post("/users/me/avatar", auth, uploadAvatar, async (req: Request, res: Response) => { 
+    req.user!.avatar = req.file!.buffer;
+    await req.user!.save();
+
     res.status(200).send({
         message: "Avatar uploaded successfully",
         path: req.file?.path,
@@ -171,5 +174,12 @@ router.post("/users/me/avatar", auth, uploadAvatar, (req: Request, res: Response
         });
     }
 });
+
+router.delete("/users/me/avatar", auth, async (req: Request, res: Response) => { 
+    req.user!.avatar = undefined;
+    await req.user!.save();
+
+    res.status(204).send();
+})
 
 export { router };
