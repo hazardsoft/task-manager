@@ -2,6 +2,7 @@ import express from "express";
 import { router as tasksRouter } from "./routers/tasks.js";
 import { router as usersRouter } from "./routers/users.js";
 import { connect } from "./db.js";
+import "dotenv/config";
 
 await connect();
 

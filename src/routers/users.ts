@@ -7,6 +7,7 @@ import { createUser, deleteUser, getAllowedUpdates, getUser, loginUser, updateUs
 import { uploadAvatar } from "../middleware/upload.js";
 import { MulterError } from "multer";
 import { resize } from "../middleware/image.js";
+import { sendEmail } from "../emails/account.js";
 
 const router = express.Router();
 
@@ -64,6 +65,13 @@ router.post("/users", async (req, res) => {
     const user: User = req.body;
     const result = await createUser(user);
     if (result.success && result.user) {
+        // no need to wait for email sent confirmation
+        sendEmail({
+            to: user.email,
+            subject: "Welcome to Task Manager",
+            text: `Welcome to Task Manager, ${user.name}!. Let me know how you get along with the app.`,
+        })
+
         const token: string = await result.user.generateToken();
         res.status(201)
             .setHeader(
