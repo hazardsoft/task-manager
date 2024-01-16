@@ -24,4 +24,4 @@ COPY --from=install-prod /tmp/prod/node_modules node_modules
 COPY --from=prerelease /app/dist dist
 COPY --from=prerelease /app/package.json .
 EXPOSE 3000/tcp
-CMD ["dist/main.js"]
+CMD ["dist/index.js"]
