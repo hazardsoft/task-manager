@@ -1,0 +1,11 @@
+.DS_Store
+.git
+.gitignore
+.vscode
+dist
+node_modules
+.env*
+.dockerignore
+docker-compose*.yml
+Dockerfile
+README.md
