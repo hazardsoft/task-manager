@@ -3,10 +3,10 @@ import { config } from "./config.js";
 
 async function connect(): Promise<boolean> {
     try {
-        await mongoose.connect(config.connectionUrl, {
-            dbName: config.databaseName,
-            user: config.databaseUserName,
-            pass: config.databaseUserPass
+        await mongoose.connect(config.dbConnectionUrl, {
+            user: config.dbUser,
+            pass: config.dbPassword,
+            dbName: config.dbName,
         });
         return true;
     } catch (e) {

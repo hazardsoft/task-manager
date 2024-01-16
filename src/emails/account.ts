@@ -1,6 +1,7 @@
+import { config } from "../config.js";
 import sendgrid from "@sendgrid/mail";
 
-sendgrid.setApiKey(process.env.SG_API_KEY as string);
+sendgrid.setApiKey(config.sendGridApiKey);
 
 type EmailBody = {
     to: string;
