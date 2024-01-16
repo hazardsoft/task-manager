@@ -8,8 +8,10 @@ async function connect(): Promise<boolean> {
             pass: config.dbPassword,
             dbName: config.dbName,
         });
+        console.log(`Database is connected with url ${config.dbConnectionUrl}`)
         return true;
     } catch (e) {
+        console.error(`Database cound not connect with error ${JSON.stringify(e)}`);
         return false;
     }
 }
