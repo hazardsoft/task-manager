@@ -145,6 +145,12 @@ router.delete("/users/me", auth, async (req: Request, res: Response) => {
     const result = await deleteUser(userId);
     if (result.success) {
         if (result.user) {
+            // no need to wait for email sent confirmation
+            sendEmail({
+                to: result.user.email,
+                subject: "Goodbye!",
+                text: `Goodbye, ${result.user.name}!. I hope to see you back sometime soon.`,
+            })
             res.status(204).send();
         } else {
             res.status(404).send(<ApiResponse>{
