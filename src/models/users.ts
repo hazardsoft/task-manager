@@ -6,11 +6,14 @@ import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";
 import { Task, TaskModel } from "./tasks.js";
 
-type User = {
+export type UserDao = {
     name: string;
     email: string;
     password: string;
     age?: number;
+}
+
+type User = UserDao & {
     tokens: {
         token: string;
     }[],
@@ -18,7 +21,7 @@ type User = {
     tasks?: Task[];
 }
 
-type PublicUser = Pick<User, "name" | "email" | "age"> & Pick<HydratedDocument<User>, "id"> & {tasks: Task[]};
+type PublicUser = Pick<User, "name" | "email" | "age" | "tokens"> & Pick<HydratedDocument<User>, "id"> & {tasks: Task[]};
 
 type UserMethods = {
     generateToken(): Promise<string>;
@@ -107,14 +110,18 @@ userSchema.virtual("tasks", {
 userSchema.method<HydratedDocument<User>>("generateToken", async function () { 
     const user = this;
     const token = signToken(user.id);
+    if (user.tokens.some(t => t.token === token)) {
+        console.warn(`token ${token} was already generated!`);
+        return token;
+    }
     user.tokens = user.tokens.concat({ token });
     await user.save();
     return token;
 })
 
 userSchema.method<HydratedDocument<User & {tasks: Task[]}>>("toJSON", function ():PublicUser {
-    const { name, email, age, id, tasks } = this;
-    return { id, name, email, age, tasks };
+    const { name, email, age, id, tasks, tokens } = this;
+    return { id, name, email, age, tasks, tokens };
 })
 
 userSchema.static(

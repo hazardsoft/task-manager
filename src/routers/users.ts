@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
-import { User } from "../models/users.js";
+import { User, UserDao } from "../models/users.js";
 import { ApiResponse } from "../types.js";
 import { getFullResourcePath, sendInternalError } from "../utils/path.js";
 import { auth } from "../middleware/auth.js";
@@ -17,7 +17,7 @@ router.post("/users/login", async (req, res) => {
     if (email && password) {
         const result = await loginUser(email, password);
         if (result.success && result.user) {
-            const token: string = await result.user.generateToken();
+            const token = await result.user.generateToken();
             res.status(200).send({ user: result.user, token });
         } else {
             res.status(400).send(<ApiResponse>{
@@ -62,7 +62,7 @@ router.post("/users/logoutAll", auth, async (req: Request, res: Response) => {
 })
 
 router.post("/users", async (req, res) => {
-    const user: User = req.body;
+    const user: UserDao = req.body;
     const result = await createUser(user);
     if (result.success && result.user) {
         // no need to wait for email sent confirmation
@@ -119,7 +119,7 @@ router.patch("/users/me", auth, async (req:Request, res:Response) => {
         allowedUpdates.includes(field)
     );
     if (!isAllowedUpdate) {
-        res.status(400).send(<ApiResponse>{
+        return res.status(400).send(<ApiResponse>{
             code: 400,
             message: `Incorrect request(${JSON.stringify(updates)})`,
         });

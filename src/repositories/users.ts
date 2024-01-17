@@ -1,7 +1,7 @@
-import { User, UserModel } from "../models/users.js";
+import { User, UserDao, UserModel } from "../models/users.js";
 import { UserApiResult, UsersApiResult } from "../types.js";
 
-async function createUser(user: User): Promise<UserApiResult> {
+async function createUser(user: UserDao): Promise<UserApiResult> {
     try {
         const createdUser = await new UserModel(user).save();
         return { success: true, user: createdUser };
