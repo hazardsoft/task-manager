@@ -9,5 +9,6 @@ export default defineConfig({
         threads: false,
         watch: false,
         silent: false,
+        clearMocks: true
     }
 })

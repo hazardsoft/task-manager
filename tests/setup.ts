@@ -5,16 +5,18 @@ import {connect} from "../src/db.js";
 
 const mocks = vi.hoisted(() => { 
     return {
-        setApiKey: vi.fn(),
-        sendEmail: vi.fn()
+        email: {
+            setApiKey: vi.fn(),
+            sendEmail: vi.fn()
+        }
     }
 })
 
 vi.mock("@sendgrid/mail", () => {
     return {
         default: {
-            setApiKey: mocks.setApiKey,
-            send: mocks.sendEmail,
+            setApiKey: mocks.email.setApiKey,
+            send: mocks.email.sendEmail,
         }
     }
 })

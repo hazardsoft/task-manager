@@ -11,7 +11,7 @@ The following env vars files need to be created:
 
 ```
 Build image:
-docker build --tag hazardsoft/task-manager@latest .
+docker build --tag hazardsoft/task-manager:latest .
 
 Run image:
 docker run --env-file .env.docker --publish 3000:3000/tcp --detach hazardsoft/task-manager:latest

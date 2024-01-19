@@ -1,32 +1,9 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { mocks, request } from "./setup.js";
 import { PublicUser, User, UserDao, UserModel } from "../src/models/users.js";
-import { LoginBody, login, logout } from "./fixtures/login.js";
-
-const initialUserDao:UserDao  = {
-    name: "Henadzi Shutko",
-    email: `hazardsoft@gmail.com`,
-    age: 36,
-    password: "123456"
-};
-
-let loggedUser:LoginBody;
+import { loggedInUser, initialUserDao } from "./fixtures/db.js";
 
 describe("Test suite for /users endpoint", () => {
-    beforeAll(async () => {
-        await UserModel.deleteMany();
-        await new UserModel(initialUserDao).save();
-        loggedUser = await login(initialUserDao);
-    })
-
-    afterAll(async () => { 
-        logout(loggedUser.token);
-    })
-
-    beforeEach(() => {
-        mocks.sendEmail.mockClear();
-    })
-
     test("Shout create a new user", async () => {
         const userDao: UserDao = { ...initialUserDao, email: "test@gmail.com" };
         const response = await request.post("/users").send(userDao);
@@ -52,7 +29,7 @@ describe("Test suite for /users endpoint", () => {
         expect(createdUser).toMatchObject(userObjToMatch);
         expect(createdUser?.tokens.find(t => t.token === body.token)).toBeTruthy();
 
-        expect(mocks.sendEmail).toHaveBeenCalledOnce();
+        expect(mocks.email.sendEmail).toHaveBeenCalledOnce();
     })
 
     test("Should login existing user", async () => {
@@ -92,7 +69,7 @@ describe("Test suite for /users endpoint", () => {
     })
 
     test("Should return my profile", async () => {
-        const response = await request.get("/users/me").auth(loggedUser.token, { type: "bearer" }).send();
+        const response = await request.get("/users/me").auth(loggedInUser.token, { type: "bearer" }).send();
         const body: PublicUser = response.body;
 
         expect(response.status).toBe(200);
@@ -108,31 +85,31 @@ describe("Test suite for /users endpoint", () => {
     test("Should upload avatar image", async () => {
         const response = await request
             .post("/users/me/avatar")
-            .auth(loggedUser.token, { type: "bearer" })
+            .auth(loggedInUser.token, { type: "bearer" })
             .attach("avatar", "tests/fixtures/profile-pic.jpg")
         
         expect(response.status).toBe(200);
 
-        const user = await UserModel.findById(loggedUser.user.id);
+        const user = await UserModel.findById(loggedInUser.user.id);
         expect(user?.avatar).toBeDefined();
         expect(user?.avatar).toBeInstanceOf(Buffer);
     })
 
     test("Should update user", async () => { 
         const updates: Partial<User> = {
-            name: loggedUser.user.name + "updated",
+            name: loggedInUser.user.name + "updated",
         }
 
         const response = await request
             .patch("/users/me")
-            .auth(loggedUser.token, { type: "bearer" })
+            .auth(loggedInUser.token, { type: "bearer" })
             .send(updates);
         
         const body: PublicUser = response.body;
         expect(response.status).toBe(200);
         expect(body.name).toBe(updates.name);
 
-        const updatedUser = await UserModel.findById(loggedUser.user.id);
+        const updatedUser = await UserModel.findById(loggedInUser.user.id);
         expect(updatedUser).not.toBeNull();
         expect(updatedUser?.name).toBe(updates.name);
     })
@@ -144,22 +121,22 @@ describe("Test suite for /users endpoint", () => {
 
         const response = await request
             .patch("/users/me")
-            .auth(loggedUser.token, { type: "bearer" })
+            .auth(loggedInUser.token, { type: "bearer" })
             .send(updates);
     
         expect(response.status).toBe(400);
     })
 
     test("Should delete account", async () => {
-        const response = await request.delete("/users/me").auth(loggedUser.token, { type: "bearer" }).send();
+        const response = await request.delete("/users/me").auth(loggedInUser.token, { type: "bearer" }).send();
         
         expect(response.status).toBe(204);
         expect(response.body).toEqual({});
 
-        const deletedUser = await UserModel.findById(loggedUser.user.id);
+        const deletedUser = await UserModel.findById(loggedInUser.user.id);
         expect(deletedUser).toBeNull();
 
-        expect(mocks.sendEmail).toHaveBeenCalledOnce();
+        expect(mocks.email.sendEmail).toHaveBeenCalledOnce();
     });
 
     test("Should not delete account if user unauthorized", async () => {
