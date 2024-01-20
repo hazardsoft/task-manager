@@ -14,15 +14,18 @@ beforeAll(async () => {
     await UserModel.deleteMany();
     await TaskModel.deleteMany();
     // create users
-    for await (const userDao of getUsersDao()) {
+    const usersToCreate = getUsersDao();
+    for await (const userDao of usersToCreate) {
         const user = await new UserModel(userDao).save();
         users.push(user);
         loggedUsers.set(user, await login(userDao));
     }
     // create tasks
-    for await (const taskDao of getTasksDao()) {
-        const randomUserIndex = Math.floor(Math.random() * users.length);
-        const user = users[randomUserIndex];
+    const tasksToCreate = getTasksDao();
+    let tasksIndex = 0;
+    for await (const taskDao of tasksToCreate) {
+        const userIndex = Math.floor(tasksIndex++ / tasksToCreate.length * usersToCreate.length);
+        const user = users[userIndex];
         const task = await new TaskModel({ ...taskDao, authorId: user.id }).save();
         tasks.push(task);
         

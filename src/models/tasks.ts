@@ -1,17 +1,16 @@
 import { HydratedDocument, Model, Types, Schema, model } from "mongoose";
 import { config } from "../config.js";
-import { PublicUser } from "./users.js";
+import { User } from "./users.js";
 
 type TaskDao = {
     description: string;
     completed?: boolean;
-    authorId: string;
 }
 
-type Task = Omit<TaskDao, "authorId"> & {
+type Task = TaskDao & {
     id: Types.ObjectId;
     authorId: Types.ObjectId;
-    author?: PublicUser;
+    author?: User;
 };
 
 type PublicTask = Task;
@@ -22,7 +21,8 @@ type TaskMethods = {
 
 interface ITaskModel extends Model<Task, {}, TaskMethods> {}
 
-const taskSchema = new Schema<Task, ITaskModel, TaskMethods>({
+const taskSchema = new Schema<Task, ITaskModel, TaskMethods>(
+    {
         description: {
             type: Schema.Types.String,
             required: [true, "Task description is required!"],
@@ -57,7 +57,11 @@ taskSchema.virtual("author", {
 
 taskSchema.method<HydratedDocument<Task>>("toJSON", function (): PublicTask { 
     const { description, completed, id, authorId, author } = this;
-    return { id, description, completed, authorId, author };
+    const task: PublicTask = { id, description, completed, authorId };
+    if (author) { 
+        task.author = author;
+    }
+    return task;
 });
 
 const TaskModel = model<Task, ITaskModel>("Task", taskSchema, config.tasksCollectionName);

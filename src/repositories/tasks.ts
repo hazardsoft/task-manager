@@ -1,9 +1,9 @@
 import { Task, TaskDao, TaskModel } from "../models/tasks.js";
 import { TaskApiResult, TasksApiResult } from "../types.js";
 
-async function createTask(task: TaskDao): Promise<TaskApiResult> {
+async function createTaskOfAuthor(task: TaskDao, authorId: string): Promise<TaskApiResult> {
     try {
-        const createdTask = await new TaskModel(task).save();
+        const createdTask = await new TaskModel({...task, authorId}).save();
         return { success: true, task: createdTask };
     } catch (e) {
         return {
@@ -123,7 +123,7 @@ async function updateTaskOfAuthor(id: string, authorId:string, updates: Task): P
 export {
     getAllTasks,
     getAllTasksOfAuthor,
-    createTask,
+    createTaskOfAuthor,
     getTask,
     getTaskOfAuthor,
     deleteTask,

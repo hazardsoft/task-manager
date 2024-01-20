@@ -23,17 +23,14 @@ const getTasksDao = (): TaskDao[] => {
         {
             description: "Task 1",
             completed: false,
-            authorId: ""
         },
         {
             description: "Task 2",
             completed: true,
-            authorId: ""
         },
         {
             description: "Task 3",
             completed: false,
-            authorId: ""
         }
     ];
 }

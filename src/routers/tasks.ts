@@ -1,17 +1,15 @@
 import { Request, Response, Router } from "express";
 import { Task, TaskDao, getAllowedUpdates } from "../models/tasks.js";
 import { getFullResourcePath, sendInternalError } from "../utils/path.js";
-import { createTask, deleteTaskOfAuthor, getAllTasksOfAuthor, getTaskOfAuthor, updateTaskOfAuthor } from "../repositories/tasks.js";
+import { createTaskOfAuthor, deleteTaskOfAuthor, getAllTasksOfAuthor, getTaskOfAuthor, updateTaskOfAuthor } from "../repositories/tasks.js";
 import { auth } from "../middleware/auth.js";
 
 const router = Router();
 
 router.post("/tasks", auth, async (req:Request, res:Response) => {
-    const task: TaskDao = {
-        ...req.body,
-        authorId: req.user?.id,
-    };
-    const result = await createTask(task);
+    const taskDao: TaskDao = req.body;
+    const authorId = req.user?.id;
+    const result = await createTaskOfAuthor(taskDao, authorId);
     if (result.success) {
         if (result.task) {
             res.status(201)
