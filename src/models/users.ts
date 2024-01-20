@@ -1,4 +1,4 @@
-import { Model, Schema, model, HydratedDocument } from "mongoose";
+import { Model, Schema, model, HydratedDocument, Types } from "mongoose";
 import { config } from "../config.js";
 import isEmail from "validator/lib/isEmail.js";
 import { UserApiResult } from "../types.js";
@@ -6,22 +6,25 @@ import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";
 import { Task, TaskModel } from "./tasks.js";
 
-export type UserDao = {
+type UserDao = {
     name: string;
     email: string;
     password: string;
     age?: number;
 }
 
+type Token = {
+    token: string;
+}
+
 type User = UserDao & {
-    tokens: {
-        token: string;
-    }[],
+    id: Types.ObjectId;
+    tokens?: Token[];
     avatar?: Buffer;
     tasks?: Task[];
 }
 
-type PublicUser = Pick<User, "name" | "email" | "age" | "tokens"> & Pick<HydratedDocument<User>, "id"> & {tasks: Task[]};
+type PublicUser = Omit<User, "password">;
 
 type UserMethods = {
     generateToken(): Promise<string>;
@@ -110,16 +113,16 @@ userSchema.virtual("tasks", {
 userSchema.method<HydratedDocument<User>>("generateToken", async function () { 
     const user = this;
     const token = signToken(user.id);
-    if (user.tokens.some(t => t.token === token)) {
+    if (user.tokens?.some(t => t.token === token)) {
         console.warn(`token ${token} was already generated!`);
         return token;
     }
-    user.tokens = user.tokens.concat({ token });
+    user.tokens = user.tokens?.concat({ token });
     await user.save();
     return token;
 })
 
-userSchema.method<HydratedDocument<User & {tasks: Task[]}>>("toJSON", function ():PublicUser {
+userSchema.method<HydratedDocument<User>>("toJSON", function ():PublicUser {
     const { name, email, age, id, tasks, tokens } = this;
     return { id, name, email, age, tasks, tokens };
 })
@@ -173,5 +176,6 @@ export {
     PublicUser,
     User,
     UserModel,
-    UserMethods
+    UserMethods,
+    UserDao
 };

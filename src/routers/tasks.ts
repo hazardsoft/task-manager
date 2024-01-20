@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { Task, getAllowedUpdates } from "../models/tasks.js";
+import { Task, TaskDao, getAllowedUpdates } from "../models/tasks.js";
 import { getFullResourcePath, sendInternalError } from "../utils/path.js";
 import { createTask, deleteTaskOfAuthor, getAllTasksOfAuthor, getTaskOfAuthor, updateTaskOfAuthor } from "../repositories/tasks.js";
 import { auth } from "../middleware/auth.js";
@@ -7,7 +7,7 @@ import { auth } from "../middleware/auth.js";
 const router = Router();
 
 router.post("/tasks", auth, async (req:Request, res:Response) => {
-    const task: Task = {
+    const task: TaskDao = {
         ...req.body,
         authorId: req.user?.id,
     };

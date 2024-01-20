@@ -1,7 +1,7 @@
-import { Task, TaskModel } from "../models/tasks.js";
+import { Task, TaskDao, TaskModel } from "../models/tasks.js";
 import { TaskApiResult, TasksApiResult } from "../types.js";
 
-async function createTask(task: Task): Promise<TaskApiResult> {
+async function createTask(task: TaskDao): Promise<TaskApiResult> {
     try {
         const createdTask = await new TaskModel(task).save();
         return { success: true, task: createdTask };

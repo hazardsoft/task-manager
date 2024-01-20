@@ -36,7 +36,7 @@ router.post("/users/login", async (req, res) => {
 router.post("/users/logout", auth, async (req: Request, res: Response) => { 
     const userId = req.user!.id;
     const tokens = req.user!.tokens;
-    const updatedTokens = tokens.filter(token => token.token !== req.token);  
+    const updatedTokens = tokens?.filter(token => token.token !== req.token);  
     const result = await updateUser(userId, {tokens: updatedTokens});
     if (result.success) {
         res.status(200).send();

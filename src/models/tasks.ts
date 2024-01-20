@@ -1,20 +1,26 @@
-import { HydratedDocument, HydratedDocumentFromSchema, Model, ObjectId, Schema, model } from "mongoose";
+import { HydratedDocument, Model, Types, Schema, model } from "mongoose";
 import { config } from "../config.js";
-import { PublicUser, User } from "./users.js";
+import { PublicUser } from "./users.js";
 
-type Task = {
+type TaskDao = {
     description: string;
     completed?: boolean;
-    authorId: ObjectId;
+    authorId: string;
+}
+
+type Task = Omit<TaskDao, "authorId"> & {
+    id: Types.ObjectId;
+    authorId: Types.ObjectId;
+    author?: PublicUser;
 };
+
+type PublicTask = Task;
 
 type TaskMethods = {
     toJSON(): PublicTask;
 }
 
 interface ITaskModel extends Model<Task, {}, TaskMethods> {}
-
-type PublicTask = Pick<Task, "description" | "completed" | "authorId"> & Pick<HydratedDocument<Task>, "id"> & { author: PublicUser };
 
 const taskSchema = new Schema<Task, ITaskModel, TaskMethods>({
         description: {
@@ -49,7 +55,7 @@ taskSchema.virtual("author", {
     foreignField: "_id",
 })
 
-taskSchema.method<HydratedDocument<Task & {author: PublicUser}>>("toJSON", function (): PublicTask { 
+taskSchema.method<HydratedDocument<Task>>("toJSON", function (): PublicTask { 
     const { description, completed, id, authorId, author } = this;
     return { id, description, completed, authorId, author };
 });
@@ -66,5 +72,7 @@ export {
     getAllowedUpdates,
     Task,
     TaskModel,
-    TaskMethods
+    TaskMethods,
+    TaskDao,
+    PublicTask
 };
